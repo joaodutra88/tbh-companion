@@ -49,6 +49,9 @@ export const PARAMS = {
   SLOT_TYPES: [null, null, "HELMET", "ARMOR", "GLOVES", "BOOTS", "AMULET", "EARING", "RING", "BRACER"],
 } as const;
 
+/** Forma do bloco PARAMS (usado em `Recommendation.params`). */
+export type Params = typeof PARAMS;
+
 export const GOLD_KEY = 100001;
 // Rune keys que concedem OfflineReward{Gold,Exp}Percent / desbloqueiam recompensas offline,
 // de data/wiki/runes.json. test.cjs verifica que existem no DB e concedem exatamente esses

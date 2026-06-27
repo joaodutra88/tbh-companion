@@ -126,3 +126,8 @@ export function synthesisPlan(db: GameDB, psd: PlayerSaveData) {
   }
   return out;
 }
+
+export type Inventory = ReturnType<typeof inventory>;
+export type StorageGrid = ReturnType<typeof storageGrid>;
+export type AlchemyValue = ReturnType<typeof alchemyValue>;
+export type SynthesisPlan = ReturnType<typeof synthesisPlan>;

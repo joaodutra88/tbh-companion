@@ -161,6 +161,11 @@ export function enchantAdvisor(db: GameDB, psd: PlayerSaveData, stageLevel?: num
   return { perHero, totalOpen, affixFactor: af };
 }
 
+export type GearAdvice = ReturnType<typeof gearAdvisor>;
+export type ApAdvice = ReturnType<typeof apAdvisor>;
+export type EnchantAdvice = ReturnType<typeof enchantAdvisor>;
+export type GearProgression = ReturnType<typeof gearProgression>;
+
 export function gearProgression(db: GameDB, psd: PlayerSaveData, frontierLvl?: number) {
   const ism = itemSaveMap(psd),
     hsm = heroSaveMap(psd),

@@ -121,3 +121,5 @@ export function xpForecast(db: GameDB, psd: PlayerSaveData, eps?: number) {
     };
   });
 }
+
+export type XpForecast = ReturnType<typeof xpForecast>;

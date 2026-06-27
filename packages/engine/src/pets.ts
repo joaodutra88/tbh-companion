@@ -33,3 +33,5 @@ export function petAdvisor(db: GameDB, psd: PlayerSaveData) {
     bestDrop: rank("DropChanceNormalChestPercent")[0] || null,
   };
 }
+
+export type PetAdvice = ReturnType<typeof petAdvisor>;

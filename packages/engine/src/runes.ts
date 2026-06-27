@@ -244,6 +244,11 @@ export function runeROI(db: GameDB, psd: PlayerSaveData, goldPerSec?: number, st
     .sort((a, b) => b.perGold - a.perGold);
 }
 
+export type RunePlan = ReturnType<typeof runePlan>;
+export type RuneTreeStatus = ReturnType<typeof runeTreeStatus>;
+export type RuneROIList = ReturnType<typeof runeROI>;
+export type GoldPlan = ReturnType<typeof goldPlan>;
+
 export function goldPlan(db: GameDB, psd: PlayerSaveData, goldPerSec?: number, stageLevel?: number) {
   const have = gold(psd),
     roi = runeROI(db, psd, goldPerSec, stageLevel);

@@ -12,3 +12,4 @@ export * from "./drops";
 export * from "./chests";
 export * from "./inventory";
 export * from "./misc";
+export * from "./recommend";

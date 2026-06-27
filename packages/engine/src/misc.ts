@@ -27,3 +27,5 @@ export function forecast(psd: PlayerSaveData, level: LevelInfo[], idle: IdleInfo
     gold100kSec: g > 0 ? Math.max(0, 100000 - gold(psd)) / g : null,
   };
 }
+
+export type Forecast = ReturnType<typeof forecast>;

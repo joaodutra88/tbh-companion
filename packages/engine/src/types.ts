@@ -73,17 +73,47 @@ export interface RecommendOpts {
   clearSec?: number; clearSamples?: { clearSec: number; hp: number; waves: number }[];
 }
 
-// Tipar conforme o retorno real de recommend() (ver Task 6). Começar amplo e refinar:
+// Tipos reais retornados pelos módulos do engine (Tasks 4-5), usados para tipar
+// `Recommendation` sem `any`. Imports só-de-tipo: erasados em runtime, sem ciclo real.
+import type { FarmResult } from "./farm";
+import type { LevelInfo, XpForecast } from "./leveling";
+import type { IdleInfo } from "./idle";
+import type { RunePlan, RuneTreeStatus, RuneROIList, GoldPlan } from "./runes";
+import type { GearAdvice, ApAdvice, EnchantAdvice, GearProgression } from "./gear";
+import type { Survival, GoalPlan } from "./survival";
+import type { PartyComp } from "./party";
+import type { PetAdvice } from "./pets";
+import type { AlchemyValue, SynthesisPlan } from "./inventory";
+import type { Forecast } from "./misc";
+import type { Params } from "./stats";
+
 export interface Recommendation {
   meta: { party: number[]; gold: number; maxPartyLevel: number; currentStage: string;
           partyDPS: number; partySkillDps: number; partyEHP: number;
           carryHero: number | null; carryShare: number | null };
   heroes: HeroStat[];
-  farm: unknown; level: unknown[]; idle: unknown; runes: unknown; runeTree: unknown;
-  gear: unknown; survival: unknown; partyComp: unknown; enchant: unknown; ap: unknown;
-  pets: unknown; alchemy: unknown; gearProgression: unknown; runeROI: unknown;
-  goldPlan: unknown; goal: unknown; synthesis: unknown; xpForecast: unknown; forecast: unknown;
-  actions: Action[]; coach: Action | null; params: Record<string, unknown>;
+  farm: FarmResult;
+  level: LevelInfo[];
+  idle: IdleInfo;
+  runes: RunePlan;
+  runeTree: RuneTreeStatus;
+  gear: GearAdvice;
+  survival: Survival; // Survival já inclui `| null`
+  partyComp: PartyComp;
+  enchant: EnchantAdvice;
+  ap: ApAdvice;
+  pets: PetAdvice;
+  alchemy: AlchemyValue;
+  gearProgression: GearProgression;
+  runeROI: RuneROIList;
+  goldPlan: GoldPlan;
+  goal: GoalPlan; // GoalPlan já inclui `| null`
+  synthesis: SynthesisPlan;
+  xpForecast: XpForecast;
+  forecast: Forecast;
+  actions: Action[];
+  coach: Action | null;
+  params: Params;
 }
 
 export interface HeroStat {

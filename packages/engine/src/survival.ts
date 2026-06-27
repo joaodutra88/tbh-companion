@@ -43,6 +43,10 @@ export function survival(
   };
 }
 
+export type StageDanger = ReturnType<typeof stageDanger>;
+export type Survival = ReturnType<typeof survival>;
+export type GoalPlan = ReturnType<typeof goalPlan>;
+
 export function goalPlan(db: GameDB, psd: PlayerSaveData, heroes: HeroStat[], D: number, targetKey: number | string) {
   const s = db.stages[String(targetKey)];
   if (!s) return null;

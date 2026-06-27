@@ -38,3 +38,5 @@ export function partyComp(db: GameDB, psd: PlayerSaveData) {
   const bench = roles.filter((r) => !r.fielded && (r.role === "tank" || r.role === "bruiser")).sort((a, b) => b.tank - a.tank);
   return { roles, hasFront, solo, recommendTank: !solo && !hasFront && bench[0] ? bench[0].heroKey : null };
 }
+
+export type PartyComp = ReturnType<typeof partyComp>;
