@@ -1,7 +1,14 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import { loadGameDB, getDemoSaveText } from "@tbh/game-data";
 import type { GameDB } from "../src/types";
-import { parseSave, heroStats, runeContrib, party, heroSaveMap } from "../src/index";
+import {
+  parseSave,
+  heroStats,
+  runeContrib,
+  party,
+  heroSaveMap,
+  bestFarm,
+} from "../src/index";
 
 let db: GameDB;
 let psd: ReturnType<typeof parseSave>;
@@ -26,5 +33,21 @@ describe("stats core (POWER @ stage level 23)", () => {
     approxPct(p(401), 579, 10);
     approxPct(p(301), 405, 10);
     expect(party(psd)).toContain(201);
+  });
+});
+
+describe("farm optimizer", () => {
+  it("bestFarm calibra e recomenda um stage farmável", () => {
+    const hsm = heroSaveMap(psd);
+    const rcv = runeContrib(db, psd);
+    const heroes = party(psd).map((hk) => {
+      const hs = hsm[hk];
+      if (!hs) throw new Error(`hero ${hk} ausente no save`);
+      return heroStats(db, hs, psd, rcv);
+    });
+    const D = heroes.reduce((a, h) => a + h.dps, 0);
+    const f = bestFarm(db, psd, D, {});
+    expect(f.recommend).toBeTruthy();
+    expect(typeof f.recommend?.goldPerSec).toBe("number");
   });
 });

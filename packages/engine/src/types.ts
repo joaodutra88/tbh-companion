@@ -42,7 +42,7 @@ export interface GameDB {
   gear: Record<string, { b1?: number; b2?: number; inh?: [string, string, number][] }>;
   gearTypes: Record<string, { b1s?: string; b1m?: string; b2s?: string; b2m?: string }>;
   statMods: Record<string, { st: string; mt: string }>;
-  attributes: Record<string, { hero: number; atype: string; val: number; grp: number | string }>;
+  attributes: Record<string, { hero: number; atype: string; val: number; grp: number | string; max: number }>;
   attributeGroups: Record<string, number>;
   passives: Record<string, { st: string; mt: string; v: number }>;
   skills: Record<string, { slot?: string; act?: string; cd?: number; lvlKey?: number | string; delivery?: string; dmgType?: string; DamageType?: string }>;
