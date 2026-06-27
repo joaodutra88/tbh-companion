@@ -7,7 +7,7 @@ export async function connectViaPicker(): Promise<string> {
   return new Promise((resolve, reject) => {
     const input = document.createElement("input"); input.type = "file";
     input.onchange = async () => { const f = input.files?.[0]; if (!f) return reject(new Error("sem arquivo"));
-      resolve(await decryptSave(await f.arrayBuffer())); };
+      try { resolve(await decryptSave(await f.arrayBuffer())); } catch (err) { reject(err); } };
     input.click();
   });
 }
