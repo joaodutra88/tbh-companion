@@ -9,7 +9,7 @@ import React, {
   useState,
   type ReactNode,
 } from "react";
-import type { Recommendation, GameDB } from "@tbh/engine";
+import type { Recommendation, GameDB, RecommendOpts } from "@tbh/engine";
 import { loadGameDB } from "@tbh/game-data";
 import { connectViaPicker, watchSaveFile, loadDemoText } from "@/lib/save";
 import { runRecommend } from "@/lib/engine-bridge";
@@ -27,6 +27,8 @@ export interface RecommendationState {
   watch(): Promise<void>;
   demo(): Promise<void>;
   disconnect(): void;
+  /** Re-runs recommend() with new opts (e.g. clearSamples) using the last save text. */
+  recalibrate(opts: RecommendOpts): Promise<void>;
 }
 
 // ── Internal data-only state ──────────────────────────────────────────────────
@@ -56,12 +58,18 @@ const RecommendationContext = createContext<RecommendationState | null>(null);
 export function RecommendationProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<DataState>(IDLE);
   const stopRef = useRef<(() => void) | null>(null);
+  /** Last save text — used by recalibrate() to re-run recommend without re-loading. */
+  const saveTextRef = useRef<string | null>(null);
+  /** Last calibration opts — reused by live-watch ticks so calibration is not lost on save. */
+  const optsRef = useRef<RecommendOpts | null>(null);
 
   const demo = useCallback(async (): Promise<void> => {
     if (stopRef.current) { stopRef.current(); stopRef.current = null; }
+    optsRef.current = null;
     setState({ ...IDLE, status: "loading" });
     try {
       const text = loadDemoText();
+      saveTextRef.current = text;
       const rec = await runRecommend(text);
       const db = await loadGameDB();
       setState({ status: "ready", source: "demo", rec, db, error: null });
@@ -76,9 +84,11 @@ export function RecommendationProvider({ children }: { children: ReactNode }) {
 
   const connect = useCallback(async (): Promise<void> => {
     if (stopRef.current) { stopRef.current(); stopRef.current = null; }
+    optsRef.current = null;
     setState({ ...IDLE, status: "loading" });
     try {
       const text = await connectViaPicker();
+      saveTextRef.current = text;
       const rec = await runRecommend(text);
       const db = await loadGameDB();
       setState({ status: "ready", source: "file", rec, db, error: null });
@@ -101,11 +111,13 @@ export function RecommendationProvider({ children }: { children: ReactNode }) {
 
   const watch = useCallback(async (): Promise<void> => {
     if (stopRef.current) { stopRef.current(); stopRef.current = null; }
+    optsRef.current = null;
     setState({ ...IDLE, status: "loading" });
     try {
       const stopHandle = await watchSaveFile(async (text) => {
+        saveTextRef.current = text;
         try {
-          const rec = await runRecommend(text);
+          const rec = await runRecommend(text, optsRef.current ?? undefined);
           const db = await loadGameDB();
           setState((prev) => ({
             ...prev,
@@ -143,12 +155,30 @@ export function RecommendationProvider({ children }: { children: ReactNode }) {
       stopRef.current();
       stopRef.current = null;
     }
+    optsRef.current = null;
     setState(IDLE);
   }, []);
 
+  const recalibrate = useCallback(async (opts: RecommendOpts): Promise<void> => {
+    optsRef.current = opts;
+    const text = saveTextRef.current;
+    if (!text) return;
+    try {
+      const rec = await runRecommend(text, opts);
+      // reset status/error: um recalibrate bem-sucedido após uma falha anterior precisa voltar a "ready"
+      setState((prev) => ({ ...prev, status: "ready", error: null, rec }));
+    } catch (e) {
+      setState((prev) => ({
+        ...prev,
+        status: "error",
+        error: `Não consegui recalibrar — ${e instanceof Error ? e.message : "erro desconhecido"}.`,
+      }));
+    }
+  }, []);
+
   const value = useMemo<RecommendationState>(
-    () => ({ ...state, demo, connect, watch, disconnect }),
-    [state, demo, connect, watch, disconnect],
+    () => ({ ...state, demo, connect, watch, disconnect, recalibrate }),
+    [state, demo, connect, watch, disconnect, recalibrate],
   );
 
   return (

@@ -14,6 +14,7 @@ import { partyComp, type PartyComp } from "./party";
 import { petAdvisor, type PetAdvice } from "./pets";
 import { alchemyValue, synthesisPlan, type SynthesisPlan } from "./inventory";
 import { forecast, ticksToUnix } from "./misc";
+import { chestPlan } from "./chests";
 
 /** Entrada de `buildActions`: o subconjunto do recommend() que alimenta o coach. */
 export interface BuildActionsInput {
@@ -132,6 +133,7 @@ export function recommend(db: GameDB, psd: PlayerSaveData, opts?: RecommendOpts)
     farm,
     level,
     idle,
+    chests: chestPlan(db, psd, { farm }),
     runes,
     runeTree,
     gear,

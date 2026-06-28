@@ -290,3 +290,11 @@ describe("power delta (gear)", () => {
     ok(Math.abs(d.dEhp) < 1, "pure weapon swap leaves EHP unchanged");
   });
 });
+
+describe("recommend() includes chests", () => {
+  it("chests field is populated on the Recommendation result", () => {
+    ok(!!r.chests, "r.chests is truthy");
+    ok(r.chests.dropCooldown > 0, "r.chests.dropCooldown > 0");
+    ok(r.chests.types.length === 3, "r.chests.types.length === 3");
+  });
+});

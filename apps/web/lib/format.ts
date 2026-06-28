@@ -64,6 +64,12 @@ export function pct(x: number): string {
   return `${Math.round(x * 100)}%`;
 }
 
+/** Per-hour rate in compact format: 12345 → "12,3k/h". Pass the already-computed /h value. */
+export function fmtPerHour(n: number): string {
+  if (!Number.isFinite(n)) return "—";
+  return `${fmtK(n)}/h`;
+}
+
 // ── Hero resolution ─────────────────────────────────────────────────────────
 
 /** Hero display name (PT-BR), falling back to a stable label. */

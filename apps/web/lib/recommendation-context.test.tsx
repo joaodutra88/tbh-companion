@@ -12,7 +12,7 @@ import { watchSaveFile } from "@/lib/save";
 // vi.mock is hoisted before variable declarations — inline all return values.
 
 vi.mock("@/lib/engine-bridge", () => ({
-  runRecommend: vi.fn().mockResolvedValue({}),
+  runRecommend: vi.fn().mockResolvedValue({ farm: { recommend: null } }),
 }));
 
 vi.mock("@/lib/save", () => ({
@@ -103,6 +103,108 @@ describe("RecommendationProvider", () => {
     expect(stopHandle).toHaveBeenCalledOnce();
     expect(result.current.status).toBe("ready");
     expect(result.current.source).toBe("demo");
+  });
+
+  it("recalibrate() re-runs runRecommend with opts and updates rec", async () => {
+    const { runRecommend } = await import("@/lib/engine-bridge");
+    const firstRec = { farm: { recommend: null }, _tag: "first" };
+    const calibratedRec = { farm: { recommend: { key: "3-1" } }, _tag: "calibrated" };
+    vi.mocked(runRecommend)
+      .mockResolvedValueOnce(firstRec as never)
+      .mockResolvedValueOnce(calibratedRec as never);
+
+    const { result } = renderHook(() => useRecommendation(), { wrapper });
+
+    // Load demo so saveText is stored
+    await act(async () => {
+      await result.current.demo();
+    });
+    expect(result.current.status).toBe("ready");
+    expect(result.current.rec).toStrictEqual(firstRec);
+
+    const opts = { clearSamples: [{ clearSec: 12, hp: 50000, waves: 3 }] };
+    await act(async () => {
+      await result.current.recalibrate(opts);
+    });
+
+    // runRecommend called twice: once by demo(), once by recalibrate()
+    expect(vi.mocked(runRecommend)).toHaveBeenCalledTimes(2);
+    // Second call must pass the opts
+    expect(vi.mocked(runRecommend)).toHaveBeenNthCalledWith(
+      2,
+      "demo-save-text",
+      opts,
+    );
+    // rec updated to calibratedRec, status/source unchanged
+    expect(result.current.rec).toStrictEqual(calibratedRec);
+    expect(result.current.status).toBe("ready");
+    expect(result.current.source).toBe("demo");
+  });
+
+  it("live-watch ticks after recalibrate() pass opts to runRecommend", async () => {
+    const { runRecommend } = await import("@/lib/engine-bridge");
+
+    // Capture the onChange callback so we can simulate subsequent save-file ticks
+    let capturedOnChange: ((text: string) => void) | null = null;
+    vi.mocked(watchSaveFile).mockImplementation(
+      async (onChange: (text: string) => void) => {
+        capturedOnChange = onChange;
+        onChange("watch-text-v1");
+        return vi.fn();
+      },
+    );
+
+    const { result } = renderHook(() => useRecommendation(), { wrapper });
+
+    await act(async () => {
+      await result.current.watch();
+    });
+    expect(result.current.source).toBe("live");
+
+    const opts = { clearSamples: [{ clearSec: 10, hp: 40000, waves: 2 }] };
+    await act(async () => {
+      await result.current.recalibrate(opts);
+    });
+
+    // Simulate a subsequent save-file tick (as if the game wrote a new save)
+    await act(async () => {
+      capturedOnChange!("watch-text-v2");
+    });
+
+    // The tick AFTER recalibrate must forward opts to runRecommend
+    const calls = vi.mocked(runRecommend).mock.calls;
+    const lastCall = calls[calls.length - 1];
+    expect(lastCall).toEqual(["watch-text-v2", opts]);
+  });
+
+  it("watch() and disconnect() clear calibration opts so a new session starts uncalibrated", async () => {
+    const { runRecommend } = await import("@/lib/engine-bridge");
+
+    let capturedOnChange: ((text: string) => void) | null = null;
+    vi.mocked(watchSaveFile).mockImplementation(
+      async (onChange: (text: string) => void) => {
+        capturedOnChange = onChange;
+        onChange("watch-text-v1");
+        return vi.fn();
+      },
+    );
+
+    const { result } = renderHook(() => useRecommendation(), { wrapper });
+
+    // First watch session + calibrate
+    await act(async () => { await result.current.watch(); });
+    const opts = { clearSamples: [{ clearSec: 10, hp: 40000, waves: 2 }] };
+    await act(async () => { await result.current.recalibrate(opts); });
+
+    // Disconnect clears opts; new watch() session starts uncalibrated
+    act(() => { result.current.disconnect(); });
+    await act(async () => { await result.current.watch(); });
+
+    // First tick of the new session must NOT carry stale opts
+    const calls = vi.mocked(runRecommend).mock.calls;
+    const lastCall = calls[calls.length - 1];
+    expect(lastCall[1]).toBeUndefined();
+    expect(capturedOnChange).not.toBeNull(); // watch was re-established
   });
 
   it("useRecommendation() throws when used outside provider", () => {

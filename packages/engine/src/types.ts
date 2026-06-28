@@ -86,6 +86,7 @@ import type { PetAdvice } from "./pets";
 import type { AlchemyValue, SynthesisPlan } from "./inventory";
 import type { Forecast } from "./misc";
 import type { Params } from "./stats";
+import type { ChestPlan } from "./chests";
 
 export interface Recommendation {
   meta: { party: number[]; gold: number; maxPartyLevel: number; currentStage: string;
@@ -111,6 +112,7 @@ export interface Recommendation {
   synthesis: SynthesisPlan;
   xpForecast: XpForecast;
   forecast: Forecast;
+  chests: ChestPlan;
   actions: Action[];
   coach: Action | null;
   params: Params;
