@@ -158,7 +158,8 @@ export function RecommendationProvider({ children }: { children: ReactNode }) {
     if (!text) return;
     try {
       const rec = await runRecommend(text, opts);
-      setState((prev) => ({ ...prev, rec }));
+      // reset status/error: um recalibrate bem-sucedido após uma falha anterior precisa voltar a "ready"
+      setState((prev) => ({ ...prev, status: "ready", error: null, rec }));
     } catch (e) {
       setState((prev) => ({
         ...prev,
