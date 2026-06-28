@@ -60,9 +60,12 @@ export function RecommendationProvider({ children }: { children: ReactNode }) {
   const stopRef = useRef<(() => void) | null>(null);
   /** Last save text — used by recalibrate() to re-run recommend without re-loading. */
   const saveTextRef = useRef<string | null>(null);
+  /** Last calibration opts — reused by live-watch ticks so calibration is not lost on save. */
+  const optsRef = useRef<RecommendOpts | null>(null);
 
   const demo = useCallback(async (): Promise<void> => {
     if (stopRef.current) { stopRef.current(); stopRef.current = null; }
+    optsRef.current = null;
     setState({ ...IDLE, status: "loading" });
     try {
       const text = loadDemoText();
@@ -81,6 +84,7 @@ export function RecommendationProvider({ children }: { children: ReactNode }) {
 
   const connect = useCallback(async (): Promise<void> => {
     if (stopRef.current) { stopRef.current(); stopRef.current = null; }
+    optsRef.current = null;
     setState({ ...IDLE, status: "loading" });
     try {
       const text = await connectViaPicker();
@@ -107,12 +111,13 @@ export function RecommendationProvider({ children }: { children: ReactNode }) {
 
   const watch = useCallback(async (): Promise<void> => {
     if (stopRef.current) { stopRef.current(); stopRef.current = null; }
+    optsRef.current = null;
     setState({ ...IDLE, status: "loading" });
     try {
       const stopHandle = await watchSaveFile(async (text) => {
         saveTextRef.current = text;
         try {
-          const rec = await runRecommend(text);
+          const rec = await runRecommend(text, optsRef.current ?? undefined);
           const db = await loadGameDB();
           setState((prev) => ({
             ...prev,
@@ -150,10 +155,12 @@ export function RecommendationProvider({ children }: { children: ReactNode }) {
       stopRef.current();
       stopRef.current = null;
     }
+    optsRef.current = null;
     setState(IDLE);
   }, []);
 
   const recalibrate = useCallback(async (opts: RecommendOpts): Promise<void> => {
+    optsRef.current = opts;
     const text = saveTextRef.current;
     if (!text) return;
     try {
