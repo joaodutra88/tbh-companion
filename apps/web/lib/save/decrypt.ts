@@ -13,6 +13,27 @@ export async function decryptSave(buf: ArrayBuffer): Promise<string> {
   return new TextDecoder().decode(out);
 }
 
+// Um .es3 decripta para um JSON externo { PlayerSaveData: { value: "<save interno>" }, ... }.
+// O save de fato é o `.PlayerSaveData.value` interno (string JSON que parseSave consome).
+export function extractSaveText(decryptedFile: string): string {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(decryptedFile);
+  } catch {
+    throw new Error("Save decriptado não é JSON válido");
+  }
+  const value = (parsed as { PlayerSaveData?: { value?: unknown } } | null)?.PlayerSaveData?.value;
+  if (typeof value !== "string") {
+    throw new Error("Save sem PlayerSaveData.value — formato inesperado");
+  }
+  return value;
+}
+
+// Lê o arquivo .es3: decripta e extrai o save interno (texto pronto para parseSave).
+export async function readSaveFile(buf: ArrayBuffer): Promise<string> {
+  return extractSaveText(await decryptSave(buf));
+}
+
 // helper de teste: cifra com o MESMO esquema (round-trip), não usado em produção
 export async function encryptSaveForTest(plaintext: string): Promise<ArrayBuffer> {
   const iv = crypto.getRandomValues(new Uint8Array(16));

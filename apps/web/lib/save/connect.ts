@@ -1,13 +1,13 @@
-import { decryptSave } from "./decrypt";
+import { readSaveFile } from "./decrypt";
 
 export async function connectViaPicker(): Promise<string> {
   const [handle] = await (window as any).showOpenFilePicker?.() ?? [];
-  if (handle) { const file = await handle.getFile(); return decryptSave(await file.arrayBuffer()); }
+  if (handle) { const file = await handle.getFile(); return readSaveFile(await file.arrayBuffer()); }
   // fallback <input type=file>
   return new Promise((resolve, reject) => {
     const input = document.createElement("input"); input.type = "file";
     input.onchange = async () => { const f = input.files?.[0]; if (!f) return reject(new Error("sem arquivo"));
-      try { resolve(await decryptSave(await f.arrayBuffer())); } catch (err) { reject(err); } };
+      try { resolve(await readSaveFile(await f.arrayBuffer())); } catch (err) { reject(err); } };
     input.click();
   });
 }
@@ -21,7 +21,7 @@ export async function watchSaveFile(onChange: (text: string) => void): Promise<(
   const tick = async () => {
     if (stopped) return;
     try { const file = await handle.getFile();
-      if (file.lastModified !== last) { last = file.lastModified; onChange(await decryptSave(await file.arrayBuffer())); } }
+      if (file.lastModified !== last) { last = file.lastModified; onChange(await readSaveFile(await file.arrayBuffer())); } }
     catch { /* arquivo temporariamente indisponível durante o save do jogo */ }
     if (!stopped) setTimeout(tick, 2000);
   };
