@@ -56,4 +56,12 @@ describe("fetchMarketList", () => {
     const list = await fetchMarketList(3678970, { pageDelayMs: 0 });
     expect(list.items.length).toBe(1); expect(list.partial).toBe(true);
   });
+  it("stops after first page and flags partial when budgetMs is exhausted", async () => {
+    const spy = vi.fn(async () => okJson({ success: true, total_count: 999, results: [{ name: "X", hash_name: "X", sell_price: 1, asset_description: {} }] }));
+    vi.stubGlobal("fetch", spy);
+    const list = await fetchMarketList(3678970, { budgetMs: 0, pageDelayMs: 0 });
+    expect(spy).toHaveBeenCalledTimes(1);
+    expect(list.items.length).toBe(1);
+    expect(list.partial).toBe(true);
+  });
 });

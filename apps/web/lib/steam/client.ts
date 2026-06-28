@@ -24,11 +24,13 @@ export async function fetchPrice(appid: number, name: string): Promise<PriceResu
   return parsePrice(name, await steamJson(url, TTL.price));
 }
 
-export async function fetchMarketList(appid: number, opts: { maxPages?: number; pageDelayMs?: number } = {}): Promise<MarketList> {
+export async function fetchMarketList(appid: number, opts: { maxPages?: number; pageDelayMs?: number; budgetMs?: number } = {}): Promise<MarketList> {
   const maxPages = opts.maxPages ?? 30;
-  const pageDelayMs = opts.pageDelayMs ?? 1200;
+  const pageDelayMs = opts.pageDelayMs ?? 400;
+  const budgetMs = opts.budgetMs ?? 45000;
   const items: MarketItem[] = [];
   let start = 0, total = 0, partial = false, pages = 0;
+  const startedAt = Date.now();
   while (pages < maxPages) {
     const url = `https://steamcommunity.com/market/search/render/?appid=${appid}&norender=1&count=100&start=${start}&sort_column=price&sort_dir=desc&currency=7`;
     let json: unknown;
@@ -40,6 +42,7 @@ export async function fetchMarketList(appid: number, opts: { maxPages?: number; 
     if (!pageItems.length) break;
     items.push(...pageItems);
     start += pageItems.length; pages += 1;
+    if (Date.now() - startedAt >= budgetMs) { partial = true; break; }
     if (start < total && pages < maxPages) await sleep(pageDelayMs); else break;
   }
   if (pages >= maxPages && start < total) partial = true;
