@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Space_Grotesk, Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import { RecommendationProvider } from "@/lib/recommendation-context";
 
 const display = Space_Grotesk({
   subsets: ["latin"],
@@ -38,7 +39,9 @@ export default function RootLayout({
       lang="pt-BR"
       className={`${display.variable} ${body.variable} ${mono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+          <RecommendationProvider>{children}</RecommendationProvider>
+        </body>
     </html>
   );
 }
