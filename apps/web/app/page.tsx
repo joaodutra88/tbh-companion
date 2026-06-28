@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { ConnectSave } from "@/components/connect-save";
 import { Overview } from "@/components/overview/overview";
+import { FarmPane } from "@/components/farm/farm-pane";
 import { useRecommendation } from "@/lib/recommendation-context";
 
 // ── Status slot (top-bar right side) ─────────────────────────────────────────
@@ -57,15 +58,12 @@ interface ActivePaneProps {
   tab: string;
   rec: NonNullable<ReturnType<typeof useRecommendation>["rec"]>;
   db: ReturnType<typeof useRecommendation>["db"];
+  recalibrate: ReturnType<typeof useRecommendation>["recalibrate"];
 }
 
-function ActivePane({ tab, rec, db }: ActivePaneProps) {
+function ActivePane({ tab, rec, db, recalibrate }: ActivePaneProps) {
   if (tab === "farm") {
-    return (
-      <div className="p-6 text-dim font-body text-[14px]">
-        Farm (em construção)
-      </div>
-    );
+    return <FarmPane rec={rec} db={db} recalibrate={recalibrate} />;
   }
   if (tab === "baus") {
     return (
@@ -80,13 +78,13 @@ function ActivePane({ tab, rec, db }: ActivePaneProps) {
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function Home() {
-  const { status, rec, db } = useRecommendation();
+  const { status, rec, db, recalibrate } = useRecommendation();
   const [tab, setTab] = useState("overview");
 
   return (
     <AppShell statusSlot={<StatusSlot />} activeTab={tab} onTabChange={setTab}>
       {status === "ready" && rec ? (
-        <ActivePane tab={tab} rec={rec} db={db} />
+        <ActivePane tab={tab} rec={rec} db={db} recalibrate={recalibrate} />
       ) : (
         <ConnectSave />
       )}
