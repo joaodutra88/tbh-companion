@@ -5,6 +5,7 @@ import { AppShell } from "@/components/app-shell";
 import { ConnectSave } from "@/components/connect-save";
 import { Overview } from "@/components/overview/overview";
 import { FarmPane } from "@/components/farm/farm-pane";
+import { ChestsPane } from "@/components/chests/chests-pane";
 import { useRecommendation } from "@/lib/recommendation-context";
 
 // ── Status slot (top-bar right side) ─────────────────────────────────────────
@@ -66,11 +67,7 @@ function ActivePane({ tab, rec, db, recalibrate }: ActivePaneProps) {
     return <FarmPane rec={rec} db={db} recalibrate={recalibrate} />;
   }
   if (tab === "baus") {
-    return (
-      <div className="p-6 text-dim font-body text-[14px]">
-        Baús (em construção)
-      </div>
-    );
+    return <ChestsPane rec={rec} />;
   }
   return <Overview rec={rec} db={db} />;
 }
