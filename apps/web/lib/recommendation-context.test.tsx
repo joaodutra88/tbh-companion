@@ -6,6 +6,7 @@ import {
   RecommendationProvider,
   useRecommendation,
 } from "./recommendation-context";
+import { watchSaveFile } from "@/lib/save";
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
 // vi.mock is hoisted before variable declarations — inline all return values.
@@ -75,6 +76,33 @@ describe("RecommendationProvider", () => {
     expect(result.current.status).toBe("idle");
     expect(result.current.rec).toBeNull();
     expect(result.current.db).toBeNull();
+  });
+
+  it("demo() after watch() invokes the stored stop handle", async () => {
+    const stopHandle = vi.fn();
+    vi.mocked(watchSaveFile).mockImplementation(
+      async (onChange: (text: string) => void) => {
+        // simulate immediate initial read (mirrors real watchSaveFile tick())
+        onChange("watch-save-text");
+        return stopHandle;
+      },
+    );
+
+    const { result } = renderHook(() => useRecommendation(), { wrapper });
+
+    await act(async () => {
+      await result.current.watch();
+    });
+    expect(result.current.status).toBe("ready");
+    expect(result.current.source).toBe("live");
+
+    await act(async () => {
+      await result.current.demo();
+    });
+
+    expect(stopHandle).toHaveBeenCalledOnce();
+    expect(result.current.status).toBe("ready");
+    expect(result.current.source).toBe("demo");
   });
 
   it("useRecommendation() throws when used outside provider", () => {

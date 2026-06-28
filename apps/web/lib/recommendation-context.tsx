@@ -2,7 +2,9 @@
 
 import React, {
   createContext,
+  useCallback,
   useContext,
+  useMemo,
   useRef,
   useState,
   type ReactNode,
@@ -55,7 +57,8 @@ export function RecommendationProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<DataState>(IDLE);
   const stopRef = useRef<(() => void) | null>(null);
 
-  const demo = async (): Promise<void> => {
+  const demo = useCallback(async (): Promise<void> => {
+    if (stopRef.current) { stopRef.current(); stopRef.current = null; }
     setState({ ...IDLE, status: "loading" });
     try {
       const text = loadDemoText();
@@ -69,9 +72,10 @@ export function RecommendationProvider({ children }: { children: ReactNode }) {
         error: "Não consegui carregar o demo — tente recarregar a página.",
       });
     }
-  };
+  }, []);
 
-  const connect = async (): Promise<void> => {
+  const connect = useCallback(async (): Promise<void> => {
+    if (stopRef.current) { stopRef.current(); stopRef.current = null; }
     setState({ ...IDLE, status: "loading" });
     try {
       const text = await connectViaPicker();
@@ -79,7 +83,7 @@ export function RecommendationProvider({ children }: { children: ReactNode }) {
       const db = await loadGameDB();
       setState({ status: "ready", source: "file", rec, db, error: null });
     } catch (e) {
-      // Picker cancelled → silently back to idle
+      // Picker cancelado → volta silenciosamente ao idle
       if (
         e instanceof Error &&
         (e.name === "AbortError" || e.message === "sem arquivo")
@@ -93,9 +97,10 @@ export function RecommendationProvider({ children }: { children: ReactNode }) {
         error: "Não consegui ler o save — confira o arquivo e tente de novo.",
       });
     }
-  };
+  }, []);
 
-  const watch = async (): Promise<void> => {
+  const watch = useCallback(async (): Promise<void> => {
+    if (stopRef.current) { stopRef.current(); stopRef.current = null; }
     setState({ ...IDLE, status: "loading" });
     try {
       const stopHandle = await watchSaveFile(async (text) => {
@@ -131,23 +136,20 @@ export function RecommendationProvider({ children }: { children: ReactNode }) {
           "Live-watch não iniciou — browser não suportado ou permissão negada.",
       });
     }
-  };
+  }, []);
 
-  const disconnect = (): void => {
+  const disconnect = useCallback((): void => {
     if (stopRef.current) {
       stopRef.current();
       stopRef.current = null;
     }
     setState(IDLE);
-  };
+  }, []);
 
-  const value: RecommendationState = {
-    ...state,
-    demo,
-    connect,
-    watch,
-    disconnect,
-  };
+  const value = useMemo<RecommendationState>(
+    () => ({ ...state, demo, connect, watch, disconnect }),
+    [state, demo, connect, watch, disconnect],
+  );
 
   return (
     <RecommendationContext.Provider value={value}>

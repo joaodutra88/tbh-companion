@@ -40,8 +40,8 @@ export default function RootLayout({
       className={`${display.variable} ${body.variable} ${mono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-          <RecommendationProvider>{children}</RecommendationProvider>
-        </body>
+        <RecommendationProvider>{children}</RecommendationProvider>
+      </body>
     </html>
   );
 }
