@@ -12,7 +12,7 @@ import { watchSaveFile } from "@/lib/save";
 // vi.mock is hoisted before variable declarations — inline all return values.
 
 vi.mock("@/lib/engine-bridge", () => ({
-  runRecommend: vi.fn().mockResolvedValue({}),
+  runRecommend: vi.fn().mockResolvedValue({ farm: { recommend: null } }),
 }));
 
 vi.mock("@/lib/save", () => ({
@@ -101,6 +101,42 @@ describe("RecommendationProvider", () => {
     });
 
     expect(stopHandle).toHaveBeenCalledOnce();
+    expect(result.current.status).toBe("ready");
+    expect(result.current.source).toBe("demo");
+  });
+
+  it("recalibrate() re-runs runRecommend with opts and updates rec", async () => {
+    const { runRecommend } = await import("@/lib/engine-bridge");
+    const firstRec = { farm: { recommend: null }, _tag: "first" };
+    const calibratedRec = { farm: { recommend: { key: "3-1" } }, _tag: "calibrated" };
+    vi.mocked(runRecommend)
+      .mockResolvedValueOnce(firstRec as never)
+      .mockResolvedValueOnce(calibratedRec as never);
+
+    const { result } = renderHook(() => useRecommendation(), { wrapper });
+
+    // Load demo so saveText is stored
+    await act(async () => {
+      await result.current.demo();
+    });
+    expect(result.current.status).toBe("ready");
+    expect(result.current.rec).toStrictEqual(firstRec);
+
+    const opts = { clearSamples: [{ clearSec: 12, hp: 50000, waves: 3 }] };
+    await act(async () => {
+      await result.current.recalibrate(opts);
+    });
+
+    // runRecommend called twice: once by demo(), once by recalibrate()
+    expect(vi.mocked(runRecommend)).toHaveBeenCalledTimes(2);
+    // Second call must pass the opts
+    expect(vi.mocked(runRecommend)).toHaveBeenNthCalledWith(
+      2,
+      "demo-save-text",
+      opts,
+    );
+    // rec updated to calibratedRec, status/source unchanged
+    expect(result.current.rec).toStrictEqual(calibratedRec);
     expect(result.current.status).toBe("ready");
     expect(result.current.source).toBe("demo");
   });

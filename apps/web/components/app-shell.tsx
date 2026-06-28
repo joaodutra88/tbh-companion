@@ -7,19 +7,18 @@ import React from "react";
 interface TabDef {
   id: string;
   label: string;
-  active: boolean;
   disabled: boolean;
 }
 
 const TABS: TabDef[] = [
-  { id: "overview",  label: "Overview",  active: true,  disabled: false },
-  { id: "farm",      label: "Farm",      active: false, disabled: true  },
-  { id: "runas",     label: "Runas",     active: false, disabled: true  },
-  { id: "gear",      label: "Gear",      active: false, disabled: true  },
-  { id: "loja",      label: "Loja",      active: false, disabled: true  },
-  { id: "vender",    label: "Vender",    active: false, disabled: true  },
-  { id: "historico", label: "Histórico", active: false, disabled: true  },
-  { id: "baus",      label: "Baús",      active: false, disabled: true  },
+  { id: "overview",  label: "Overview",  disabled: false },
+  { id: "farm",      label: "Farm",      disabled: false },
+  { id: "baus",      label: "Baús",      disabled: false },
+  { id: "runas",     label: "Runas",     disabled: true  },
+  { id: "gear",      label: "Gear",      disabled: true  },
+  { id: "loja",      label: "Loja",      disabled: true  },
+  { id: "vender",    label: "Vender",    disabled: true  },
+  { id: "historico", label: "Histórico", disabled: true  },
 ];
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -28,11 +27,20 @@ interface AppShellProps {
   children: React.ReactNode;
   /** Optional slot rendered in the top-bar right side (status, save controls). */
   statusSlot?: React.ReactNode;
+  /** The currently active tab id. */
+  activeTab: string;
+  /** Called when the user clicks an enabled tab. */
+  onTabChange: (id: string) => void;
 }
 
 // ── Component ────────────────────────────────────────────────────────────────
 
-export function AppShell({ children, statusSlot }: AppShellProps) {
+export function AppShell({
+  children,
+  statusSlot,
+  activeTab,
+  onTabChange,
+}: AppShellProps) {
   return (
     <div className="min-h-screen flex flex-col bg-bg text-text">
       {/* ── Top bar ── */}
@@ -46,9 +54,7 @@ export function AppShell({ children, statusSlot }: AppShellProps) {
         {/* Right-side status/save slot */}
         <div className="flex items-center gap-3 min-w-0">
           {statusSlot ?? (
-            <span className="text-[12px] text-dim font-body">
-              {/* Preenchido pela Task 2 */}
-            </span>
+            <span className="text-[12px] text-dim font-body" />
           )}
         </div>
       </header>
@@ -62,7 +68,12 @@ export function AppShell({ children, statusSlot }: AppShellProps) {
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
           {TABS.map((tab) => (
-            <TabButton key={tab.id} tab={tab} />
+            <TabButton
+              key={tab.id}
+              tab={tab}
+              isActive={tab.id === activeTab}
+              onTabChange={onTabChange}
+            />
           ))}
         </div>
       </nav>
@@ -77,26 +88,19 @@ export function AppShell({ children, statusSlot }: AppShellProps) {
 
 // ── TabButton ─────────────────────────────────────────────────────────────────
 
-function TabButton({ tab }: { tab: TabDef }) {
-  // outline: "none" intentionally omitted — let :focus-visible gold ring show
+interface TabButtonProps {
+  tab: TabDef;
+  isActive: boolean;
+  onTabChange: (id: string) => void;
+}
+
+function TabButton({ tab, isActive, onTabChange }: TabButtonProps) {
   const baseClass =
     "inline-flex items-center py-[10px] px-[14px] " +
     "text-[13px] font-body font-medium whitespace-nowrap " +
     "border-b-2 bg-transparent " +
     "select-none shrink-0 transition-colors duration-150 -mb-px " +
     (tab.disabled ? "cursor-default" : "cursor-pointer");
-
-  if (tab.active) {
-    return (
-      <button
-        role="tab"
-        aria-selected="true"
-        className={`${baseClass} text-gold border-b-gold`}
-      >
-        {tab.label}
-      </button>
-    );
-  }
 
   if (tab.disabled) {
     return (
@@ -113,11 +117,25 @@ function TabButton({ tab }: { tab: TabDef }) {
     );
   }
 
+  if (isActive) {
+    return (
+      <button
+        role="tab"
+        aria-selected="true"
+        onClick={() => onTabChange(tab.id)}
+        className={`${baseClass} text-gold border-b-gold`}
+      >
+        {tab.label}
+      </button>
+    );
+  }
+
   return (
     <button
       role="tab"
       aria-selected="false"
-      className={`${baseClass} text-dim border-b-transparent`}
+      onClick={() => onTabChange(tab.id)}
+      className={`${baseClass} text-dim border-b-transparent hover:text-text`}
     >
       {tab.label}
     </button>

@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { ConnectSave } from "@/components/connect-save";
 import { Overview } from "@/components/overview/overview";
@@ -51,15 +51,42 @@ function StatusSlot() {
   );
 }
 
+// ── Active pane ───────────────────────────────────────────────────────────────
+
+interface ActivePaneProps {
+  tab: string;
+  rec: NonNullable<ReturnType<typeof useRecommendation>["rec"]>;
+  db: ReturnType<typeof useRecommendation>["db"];
+}
+
+function ActivePane({ tab, rec, db }: ActivePaneProps) {
+  if (tab === "farm") {
+    return (
+      <div className="p-6 text-dim font-body text-[14px]">
+        Farm (em construção)
+      </div>
+    );
+  }
+  if (tab === "baus") {
+    return (
+      <div className="p-6 text-dim font-body text-[14px]">
+        Baús (em construção)
+      </div>
+    );
+  }
+  return <Overview rec={rec} db={db} />;
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function Home() {
   const { status, rec, db } = useRecommendation();
+  const [tab, setTab] = useState("overview");
 
   return (
-    <AppShell statusSlot={<StatusSlot />}>
+    <AppShell statusSlot={<StatusSlot />} activeTab={tab} onTabChange={setTab}>
       {status === "ready" && rec ? (
-        <Overview rec={rec} db={db} />
+        <ActivePane tab={tab} rec={rec} db={db} />
       ) : (
         <ConnectSave />
       )}

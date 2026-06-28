@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import type { GameDB } from "@tbh/engine";
-import { fmt, fmtK, fmtDur, pct, localized, heroName, heroIcon } from "./format";
+import { fmt, fmtK, fmtDur, pct, fmtPerHour, localized, heroName, heroIcon } from "./format";
 
 // Minimal DB stub — only the heroes table the helpers touch.
 const db = {
@@ -52,6 +52,19 @@ describe("fmtDur", () => {
   });
   it("guards invalid input", () => {
     expect(fmtDur(-1)).toBe("—");
+  });
+});
+
+describe("fmtPerHour", () => {
+  it("formats per-hour rates in compact notation with /h suffix", () => {
+    expect(fmtPerHour(12345)).toBe("12,3k/h");
+    expect(fmtPerHour(1000)).toBe("1k/h");
+    expect(fmtPerHour(500)).toBe("500/h");
+    expect(fmtPerHour(3_400_000)).toBe("3,4M/h");
+  });
+  it("guards non-finite input", () => {
+    expect(fmtPerHour(Infinity)).toBe("—");
+    expect(fmtPerHour(NaN)).toBe("—");
   });
 });
 
