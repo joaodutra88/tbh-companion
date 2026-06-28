@@ -12,7 +12,7 @@ import React, {
 import type { Recommendation, GameDB, RecommendOpts } from "@tbh/engine";
 import { loadGameDB } from "@tbh/game-data";
 import { connectViaPicker, watchSaveFile, loadDemoText } from "@/lib/save";
-import { runRecommend } from "@/lib/engine-bridge";
+import { runRecommend, measureSave } from "@/lib/engine-bridge";
 
 // ── State shape ───────────────────────────────────────────────────────────────
 
@@ -62,10 +62,21 @@ export function RecommendationProvider({ children }: { children: ReactNode }) {
   const saveTextRef = useRef<string | null>(null);
   /** Last calibration opts — reused by live-watch ticks so calibration is not lost on save. */
   const optsRef = useRef<RecommendOpts | null>(null);
+  /** Last live-watch snapshot for auto-calibration delta measurement. */
+  const prevSnapshotRef = useRef<{
+    gold: number;
+    partyExp: number;
+    stageKey: number | string;
+    atMs: number;
+  } | null>(null);
+  /** Auto-calibrated opts derived from save deltas — overridden by manual optsRef. */
+  const autoOptsRef = useRef<RecommendOpts>({});
 
   const demo = useCallback(async (): Promise<void> => {
     if (stopRef.current) { stopRef.current(); stopRef.current = null; }
     optsRef.current = null;
+    prevSnapshotRef.current = null;
+    autoOptsRef.current = {};
     setState({ ...IDLE, status: "loading" });
     try {
       const text = loadDemoText();
@@ -85,6 +96,8 @@ export function RecommendationProvider({ children }: { children: ReactNode }) {
   const connect = useCallback(async (): Promise<void> => {
     if (stopRef.current) { stopRef.current(); stopRef.current = null; }
     optsRef.current = null;
+    prevSnapshotRef.current = null;
+    autoOptsRef.current = {};
     setState({ ...IDLE, status: "loading" });
     try {
       const text = await connectViaPicker();
@@ -112,12 +125,37 @@ export function RecommendationProvider({ children }: { children: ReactNode }) {
   const watch = useCallback(async (): Promise<void> => {
     if (stopRef.current) { stopRef.current(); stopRef.current = null; }
     optsRef.current = null;
+    prevSnapshotRef.current = null;
+    autoOptsRef.current = {};
     setState({ ...IDLE, status: "loading" });
     try {
       const stopHandle = await watchSaveFile(async (text) => {
         saveTextRef.current = text;
         try {
-          const rec = await runRecommend(text, optsRef.current ?? undefined);
+          const m = await measureSave(text);
+          const now = Date.now();
+          const snap = prevSnapshotRef.current;
+          if (snap !== null && snap.stageKey === m.stageKey) {
+            const dt = (now - snap.atMs) / 1000;
+            if (dt >= 3 && dt <= 1800) {
+              const dExp = m.partyExp - snap.partyExp;
+              const dGold = m.gold - snap.gold;
+              autoOptsRef.current = {
+                ...(dExp > 0 ? { expPerSec: dExp / dt } : {}),
+                ...(dGold > 0 ? { goldPerSec: dGold / dt } : {}),
+              };
+            }
+          }
+          prevSnapshotRef.current = {
+            gold: m.gold,
+            partyExp: m.partyExp,
+            stageKey: m.stageKey,
+            atMs: now,
+          };
+          const rec = await runRecommend(text, {
+            ...autoOptsRef.current,
+            ...(optsRef.current ?? {}),
+          });
           const db = await loadGameDB();
           setState((prev) => ({
             ...prev,
@@ -156,6 +194,8 @@ export function RecommendationProvider({ children }: { children: ReactNode }) {
       stopRef.current = null;
     }
     optsRef.current = null;
+    prevSnapshotRef.current = null;
+    autoOptsRef.current = {};
     setState(IDLE);
   }, []);
 

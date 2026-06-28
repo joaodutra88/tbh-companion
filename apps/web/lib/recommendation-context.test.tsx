@@ -13,6 +13,7 @@ import { watchSaveFile } from "@/lib/save";
 
 vi.mock("@/lib/engine-bridge", () => ({
   runRecommend: vi.fn().mockResolvedValue({ farm: { recommend: null } }),
+  measureSave: vi.fn().mockResolvedValue({ gold: 1000, partyExp: 500, stageKey: "1-1" }),
 }));
 
 vi.mock("@/lib/save", () => ({
@@ -200,11 +201,72 @@ describe("RecommendationProvider", () => {
     act(() => { result.current.disconnect(); });
     await act(async () => { await result.current.watch(); });
 
-    // First tick of the new session must NOT carry stale opts
+    // First tick of the new session must NOT carry stale opts (auto+manual both cleared)
     const calls = vi.mocked(runRecommend).mock.calls;
     const lastCall = calls[calls.length - 1];
-    expect(lastCall[1]).toBeUndefined();
+    expect(lastCall[1]).toEqual({});
     expect(capturedOnChange).not.toBeNull(); // watch was re-established
+  });
+
+  it("auto-calibration derives expPerSec and goldPerSec from same-stage save deltas", async () => {
+    const { runRecommend, measureSave } = await import("@/lib/engine-bridge");
+
+    vi.mocked(measureSave)
+      .mockResolvedValueOnce({ gold: 1000, partyExp: 500, stageKey: "1-1" })
+      .mockResolvedValueOnce({ gold: 2000, partyExp: 1000, stageKey: "1-1" });
+
+    const nowMock = vi.spyOn(Date, "now")
+      .mockReturnValueOnce(0)
+      .mockReturnValueOnce(10_000); // 10 s later
+
+    let capturedOnChange: ((text: string) => void) | null = null;
+    vi.mocked(watchSaveFile).mockImplementation(async (onChange) => {
+      capturedOnChange = onChange;
+      onChange("save-v1");
+      return vi.fn();
+    });
+
+    const { result } = renderHook(() => useRecommendation(), { wrapper });
+    await act(async () => { await result.current.watch(); });
+    await act(async () => { capturedOnChange!("save-v2"); });
+
+    const calls = vi.mocked(runRecommend).mock.calls;
+    const lastCall = calls[calls.length - 1];
+    // dGold=1000/10s=100, dExp=500/10s=50
+    expect(lastCall[1]).toMatchObject({ goldPerSec: 100, expPerSec: 50 });
+
+    nowMock.mockRestore();
+  });
+
+  it("auto-calibration skips opts when stageKey changes between ticks", async () => {
+    const { runRecommend, measureSave } = await import("@/lib/engine-bridge");
+
+    vi.mocked(measureSave)
+      .mockResolvedValueOnce({ gold: 1000, partyExp: 500, stageKey: "1-1" })
+      .mockResolvedValueOnce({ gold: 2000, partyExp: 1000, stageKey: "1-2" }); // stage changed
+
+    const nowMock = vi.spyOn(Date, "now")
+      .mockReturnValueOnce(0)
+      .mockReturnValueOnce(10_000);
+
+    let capturedOnChange: ((text: string) => void) | null = null;
+    vi.mocked(watchSaveFile).mockImplementation(async (onChange) => {
+      capturedOnChange = onChange;
+      onChange("save-v1");
+      return vi.fn();
+    });
+
+    const { result } = renderHook(() => useRecommendation(), { wrapper });
+    await act(async () => { await result.current.watch(); });
+    await act(async () => { capturedOnChange!("save-v2"); });
+
+    const calls = vi.mocked(runRecommend).mock.calls;
+    const lastCall = calls[calls.length - 1];
+    // No auto opts because stageKey changed
+    expect(lastCall[1]).not.toHaveProperty("goldPerSec");
+    expect(lastCall[1]).not.toHaveProperty("expPerSec");
+
+    nowMock.mockRestore();
   });
 
   it("useRecommendation() throws when used outside provider", () => {
