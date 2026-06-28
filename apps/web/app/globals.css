@@ -135,3 +135,14 @@
   font-variant-numeric: tabular-nums;
   font-family: var(--font-mono), monospace;
 }
+
+/* ── Overview load reveal (staggered via inline animation-delay) ──
+   Base state is visible; the keyframe drives the entrance. With
+   prefers-reduced-motion the global reset disables it → element stays visible. */
+@keyframes reveal-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+.reveal {
+  animation: reveal-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}

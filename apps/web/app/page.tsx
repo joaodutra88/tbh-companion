@@ -3,6 +3,7 @@
 import React from "react";
 import { AppShell } from "@/components/app-shell";
 import { ConnectSave } from "@/components/connect-save";
+import { Overview } from "@/components/overview/overview";
 import { useRecommendation } from "@/lib/recommendation-context";
 
 // ── Status slot (top-bar right side) ─────────────────────────────────────────
@@ -53,19 +54,12 @@ function StatusSlot() {
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function Home() {
-  const { status } = useRecommendation();
+  const { status, rec, db } = useRecommendation();
 
   return (
     <AppShell statusSlot={<StatusSlot />}>
-      {status === "ready" ? (
-        <div className="flex-1 flex flex-col items-center justify-center gap-3 px-4">
-          <p className="font-display font-semibold text-[20px] text-dim tracking-[-0.01em]">
-            Overview em construção (rec carregado ✓)
-          </p>
-          <p className="text-[13px] text-dim/60 font-body">
-            Componentes visuais chegam na Task 3.
-          </p>
-        </div>
+      {status === "ready" && rec ? (
+        <Overview rec={rec} db={db} />
       ) : (
         <ConnectSave />
       )}
