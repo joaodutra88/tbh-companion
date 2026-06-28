@@ -94,7 +94,7 @@ export function RecommendationProvider({ children }: { children: ReactNode }) {
       setState({
         ...IDLE,
         status: "error",
-        error: "Não consegui ler o save — confira o arquivo e tente de novo.",
+        error: `Não consegui ler o save — ${e instanceof Error ? e.message : "erro desconhecido"}.`,
       });
     }
   }, []);
@@ -115,11 +115,11 @@ export function RecommendationProvider({ children }: { children: ReactNode }) {
             db,
             error: null,
           }));
-        } catch {
+        } catch (err) {
           setState((prev) => ({
             ...prev,
             status: "error",
-            error: "Erro ao ler o save — o arquivo pode estar corrompido.",
+            error: `Erro ao ler o save — ${err instanceof Error ? err.message : "arquivo pode estar corrompido"}.`,
           }));
         }
       });
