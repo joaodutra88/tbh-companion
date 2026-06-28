@@ -1,14 +1,34 @@
-import Link from "next/link";
+import { AppShell } from "@/components/app-shell";
 
 export default function Home() {
   return (
-    <main>
-      <h1>TBH Companion</h1>
-      <p>
-        Optimization companion for TBH: Task Bar Hero — reads your save locally
-        in the browser, no upload required.
-      </p>
-      <Link href="/lab">Open /lab (proof-of-life)</Link>
-    </main>
+    <AppShell>
+      {/* Placeholder — substituído na Task 2/3 quando RecommendationProvider for adicionado */}
+      <div
+        className="flex-1 flex flex-col items-center justify-center gap-4 px-4"
+        style={{ minHeight: 320 }}
+      >
+        <p
+          style={{
+            fontFamily: "var(--font-display), system-ui, sans-serif",
+            fontWeight: 600,
+            fontSize: 22,
+            color: "var(--dim)",
+            letterSpacing: "-0.01em",
+          }}
+        >
+          Conecte um save
+        </p>
+        <p
+          style={{
+            fontSize: 14,
+            color: "var(--dim)",
+            opacity: 0.7,
+          }}
+        >
+          O Overview aparecerá aqui após a Task 2.
+        </p>
+      </div>
+    </AppShell>
   );
 }
