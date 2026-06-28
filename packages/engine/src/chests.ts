@@ -85,3 +85,5 @@ export function chestPlan(db: GameDB, psd: PlayerSaveData, opts?: ChestPlanOpts)
   if (best && best.clearTime != null && best.clearTime > 0) best.clearsPerWindow = drop / best.clearTime;
   return { dropCooldown: drop, types, best, source };
 }
+
+export type ChestPlan = ReturnType<typeof chestPlan>;
