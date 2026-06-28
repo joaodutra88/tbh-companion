@@ -34,44 +34,19 @@ interface AppShellProps {
 
 export function AppShell({ children, statusSlot }: AppShellProps) {
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: "var(--bg)", color: "var(--text)" }}>
+    <div className="min-h-screen flex flex-col bg-bg text-text">
       {/* ── Top bar ── */}
-      <header
-        className="flex items-center justify-between px-4 md:px-6"
-        style={{
-          height: 52,
-          background: "var(--surface)",
-          borderBottom: "1px solid var(--line)",
-          flexShrink: 0,
-        }}
-      >
+      <header className="flex items-center justify-between px-4 md:px-6 h-[52px] bg-surface border-b border-line shrink-0">
         {/* Logo */}
-        <span
-          className="select-none"
-          style={{
-            fontFamily: "var(--font-display), system-ui, sans-serif",
-            fontWeight: 600,
-            fontSize: 18,
-            letterSpacing: "-0.01em",
-            color: "var(--text)",
-          }}
-        >
+        <span className="select-none font-display font-semibold text-[18px] tracking-[-0.01em] text-text">
           TBH{" "}
-          <span style={{ color: "var(--gold)" }}>
-            Companion
-          </span>
+          <span className="text-gold">Companion</span>
         </span>
 
         {/* Right-side status/save slot */}
-        <div className="flex items-center gap-3" style={{ minWidth: 0 }}>
+        <div className="flex items-center gap-3 min-w-0">
           {statusSlot ?? (
-            <span
-              style={{
-                fontSize: 12,
-                color: "var(--dim)",
-                fontFamily: "var(--font-body), system-ui, sans-serif",
-              }}
-            >
+            <span className="text-[12px] text-dim font-body">
               {/* Preenchido pela Task 2 */}
             </span>
           )}
@@ -79,23 +54,12 @@ export function AppShell({ children, statusSlot }: AppShellProps) {
       </header>
 
       {/* ── Tab navigation ── */}
-      <nav
-        aria-label="Seções do app"
-        style={{
-          background: "var(--surface)",
-          borderBottom: "1px solid var(--line)",
-          flexShrink: 0,
-        }}
-      >
+      <nav aria-label="Seções do app" className="bg-surface border-b border-line shrink-0">
+        {/* role="tablist" required by ARIA tab pattern */}
         <div
-          className="flex overflow-x-auto"
-          style={{
-            scrollbarWidth: "none",
-            msOverflowStyle: "none",
-            paddingLeft: "1rem",
-            paddingRight: "1rem",
-            gap: 2,
-          }}
+          role="tablist"
+          className="flex overflow-x-auto px-4 gap-0.5"
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
           {TABS.map((tab) => (
             <TabButton key={tab.id} tab={tab} />
@@ -104,7 +68,7 @@ export function AppShell({ children, statusSlot }: AppShellProps) {
       </nav>
 
       {/* ── Main content ── */}
-      <main className="flex-1 flex flex-col" style={{ minHeight: 0 }}>
+      <main className="flex-1 flex flex-col min-h-0">
         {children}
       </main>
     </div>
@@ -114,38 +78,20 @@ export function AppShell({ children, statusSlot }: AppShellProps) {
 // ── TabButton ─────────────────────────────────────────────────────────────────
 
 function TabButton({ tab }: { tab: TabDef }) {
-  const baseStyle: React.CSSProperties = {
-    display: "inline-flex",
-    alignItems: "center",
-    paddingTop: 10,
-    paddingBottom: 10,
-    paddingLeft: 14,
-    paddingRight: 14,
-    fontSize: 13,
-    fontFamily: "var(--font-body), system-ui, sans-serif",
-    fontWeight: 500,
-    whiteSpace: "nowrap",
-    border: "none",
-    background: "transparent",
-    cursor: tab.disabled ? "default" : "pointer",
-    userSelect: "none",
-    flexShrink: 0,
-    transition: "color 0.15s, border-color 0.15s",
-    borderBottom: "2px solid transparent",
-    marginBottom: -1, /* overlap nav border */
-    outline: "none",
-  };
+  // outline: "none" intentionally omitted — let :focus-visible gold ring show
+  const baseClass =
+    "inline-flex items-center py-[10px] px-[14px] " +
+    "text-[13px] font-body font-medium whitespace-nowrap " +
+    "border-b-2 bg-transparent " +
+    "select-none shrink-0 transition-colors duration-150 -mb-px " +
+    (tab.disabled ? "cursor-default" : "cursor-pointer");
 
   if (tab.active) {
     return (
       <button
         role="tab"
         aria-selected="true"
-        style={{
-          ...baseStyle,
-          color: "var(--gold)",
-          borderBottomColor: "var(--gold)",
-        }}
+        className={`${baseClass} text-gold border-b-gold`}
       >
         {tab.label}
       </button>
@@ -160,11 +106,7 @@ function TabButton({ tab }: { tab: TabDef }) {
         aria-disabled="true"
         title="em breve"
         tabIndex={-1}
-        style={{
-          ...baseStyle,
-          color: "var(--dim)",
-          opacity: 0.55,
-        }}
+        className={`${baseClass} text-dim border-b-transparent opacity-55`}
       >
         {tab.label}
       </button>
@@ -175,10 +117,7 @@ function TabButton({ tab }: { tab: TabDef }) {
     <button
       role="tab"
       aria-selected="false"
-      style={{
-        ...baseStyle,
-        color: "var(--dim)",
-      }}
+      className={`${baseClass} text-dim border-b-transparent`}
     >
       {tab.label}
     </button>
