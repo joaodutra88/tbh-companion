@@ -68,7 +68,7 @@ function ActivePane({ tab, rec, db, recalibrate }: ActivePaneProps) {
     return <FarmPane rec={rec} db={db} recalibrate={recalibrate} />;
   }
   if (tab === "baus") {
-    return <ChestsPane rec={rec} />;
+    return <ChestsPane rec={rec} db={db} />;
   }
   if (tab === "runas") {
     return <RunesPane rec={rec} />;
