@@ -152,6 +152,22 @@ const RuneNodeEl = React.memo(function RuneNodeEl({
         strokeWidth={c.strokeWidth}
         opacity={c.opacity}
       />
+      {/* ícone do nó: por cima do fill colorido; clip circular compartilhado */}
+      {n.icon ? (
+        <image
+          href={n.icon}
+          x={-NODE_R}
+          y={-NODE_R}
+          width={NODE_R * 2}
+          height={NODE_R * 2}
+          clipPath="url(#rune-node-clip)"
+          preserveAspectRatio="xMidYMid slice"
+          pointerEvents="none"
+          onError={(e) => {
+            (e.currentTarget as SVGImageElement).style.display = "none";
+          }}
+        />
+      ) : null}
     </g>
   );
 });
@@ -339,6 +355,12 @@ export function RuneTree({
         onPointerUp={endPan}
         onPointerCancel={endPan}
       >
+        {/* clipPath partilhado por todos os 197 nós — definido uma única vez */}
+        <defs>
+          <clipPath id="rune-node-clip">
+            <circle r={NODE_R} />
+          </clipPath>
+        </defs>
         <g
           className={`rune-viewport${dragging ? " dragging" : ""}`}
           transform={`translate(${t.x} ${t.y}) scale(${t.s})`}

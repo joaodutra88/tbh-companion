@@ -92,6 +92,18 @@ describe("RunesPane (smoke)", () => {
     fireEvent.click(toggle);
     expect(toggle.getAttribute("aria-pressed")).toBe("false");
   });
+
+  it("renderiza ≥1 <image> para nós com ícone (icon propagado pelo engine)", async () => {
+    const rec = await demoRec();
+    // Verifica que o engine propagou icon em pelo menos um nó
+    const nodesWithIcon = Object.values(rec.runeTree.nodes).filter((n) => n.icon);
+    expect(nodesWithIcon.length).toBeGreaterThan(0);
+
+    const { container } = render(<RunesPane rec={rec} />);
+    // A árvore deve ter renderizado ao menos um <image> SVG
+    const images = container.querySelectorAll("image");
+    expect(images.length).toBeGreaterThanOrEqual(1);
+  });
 });
 
 describe("RunePanels (smoke)", () => {
