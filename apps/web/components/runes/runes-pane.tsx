@@ -87,9 +87,9 @@ export function RunesPane({ rec }: RunesPaneProps) {
         <div>
           <div className="flex items-center gap-2">
             <Sparkles className="size-4 text-gold" aria-hidden="true" />
-            <h1 className="font-display text-[20px] font-semibold tracking-[-0.01em] text-text">
+            <h2 className="font-display text-[20px] font-semibold tracking-[-0.01em] text-text">
               Árvore de runas
-            </h1>
+            </h2>
           </div>
           <p className="mt-0.5 text-[12px] text-dim tabular-nums">
             {nodeCount} nós · arraste pra mover, scroll ou + / − pra dar zoom
