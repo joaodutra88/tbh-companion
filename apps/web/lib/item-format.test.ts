@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import type { GameDB } from "@tbh/engine";
-import { itemIcon, gearName, gradeStyle, gearTypeLabel, GEAR_GRADES } from "./item-format";
+import { itemIcon, gearName, gradeStyle, gearTypeLabel, GEAR_GRADES, RARITY_COLOR, rarityStyle } from "./item-format";
 
 // ── Fixtures ──────────────────────────────────────────────────────────────────
 
@@ -151,5 +151,57 @@ describe("gearTypeLabel", () => {
 
   it("returns empty string for empty input (no crash)", () => {
     expect(gearTypeLabel("")).toBe("");
+  });
+});
+
+// ── rarityStyle + RARITY_COLOR ────────────────────────────────────────────────
+
+describe("RARITY_COLOR — all 10 grades defined", () => {
+  it("has an entry for every grade in GEAR_GRADES", () => {
+    for (const grade of GEAR_GRADES) {
+      expect(RARITY_COLOR[grade]).toMatch(/^#[0-9a-f]{6}$/i);
+    }
+  });
+
+  it("all 10 colors are distinct hex values", () => {
+    const colors = Object.values(RARITY_COLOR);
+    const unique = new Set(colors);
+    expect(unique.size).toBe(GEAR_GRADES.length);
+  });
+
+  it("spot-check: COMMON=#9aa7c2, LEGENDARY=#f6c552, COSMIC=#ff5fae", () => {
+    expect(RARITY_COLOR.COMMON).toBe("#9aa7c2");
+    expect(RARITY_COLOR.LEGENDARY).toBe("#f6c552");
+    expect(RARITY_COLOR.COSMIC).toBe("#ff5fae");
+  });
+});
+
+describe("rarityStyle — returns correct hex for all 10 grades", () => {
+  for (const grade of GEAR_GRADES) {
+    it(`${grade}: color matches RARITY_COLOR[${grade}]`, () => {
+      const rs = rarityStyle(grade);
+      expect(rs.color).toBe(RARITY_COLOR[grade]);
+      expect(rs.style.color).toBe(RARITY_COLOR[grade]);
+      expect(rs.style.borderColor).toBe(RARITY_COLOR[grade]);
+    });
+  }
+
+  it("className is a non-empty string (chip shape)", () => {
+    const rs = rarityStyle("LEGENDARY");
+    expect(rs.className).toBeTruthy();
+    expect(typeof rs.className).toBe("string");
+  });
+
+  it("unknown grade falls back to COMMON color (#9aa7c2)", () => {
+    const rs = rarityStyle("LEGENDARY_PLUS");
+    expect(rs.color).toBe("#9aa7c2");
+    expect(rs.style.color).toBe("#9aa7c2");
+    expect(rs.style.borderColor).toBe("#9aa7c2");
+  });
+
+  it("empty string grade falls back gracefully", () => {
+    const rs = rarityStyle("");
+    expect(rs.color).toBe("#9aa7c2");
+    expect(rs.className).toBeTruthy();
   });
 });

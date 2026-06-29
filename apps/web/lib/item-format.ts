@@ -1,6 +1,7 @@
-// Pure helpers for gear/item display — icons, names, and grade badges.
+// Pure helpers for gear/item display — icons, names, grade badges, and rarity colors.
 // Mirrors the pattern of heroIcon / heroName in format.ts.
 // No DOM, no side-effects, fully unit-testable.
+import type { CSSProperties } from "react";
 import type { GameDB } from "@tbh/engine";
 import { gearNames as gearNamesRaw } from "@tbh/game-data";
 
@@ -182,4 +183,59 @@ export function gearTypeLabel(gearType: string): string {
     .split("_")
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
     .join(" ");
+}
+
+// ── rarityStyle ───────────────────────────────────────────────────────────────
+//
+// Game rarity colors — justified exception to "war-table tokens only".
+// These are the exact in-game hex values for the 10 rarity tiers.
+// They are applied as inline styles (color + borderColor), NOT via Tailwind,
+// since they fall outside the war-table palette and must match the game UI exactly.
+
+/**
+ * Exact in-game hex colors for all 10 gear rarity grades (ascending power).
+ * Use via rarityStyle() to get a ready-to-use style object.
+ */
+export const RARITY_COLOR: Record<GearGrade, string> = {
+  COMMON:    "#9aa7c2",
+  UNCOMMON:  "#74d28e",
+  RARE:      "#5fd0e0",
+  LEGENDARY: "#f6c552",
+  IMMORTAL:  "#ff8a5c",
+  ARCANA:    "#a98cff",
+  BEYOND:    "#ff6fae",
+  CELESTIAL: "#6fe0d0",
+  DIVINE:    "#ffd76a",
+  COSMIC:    "#ff5fae",
+};
+
+/** Neutral fallback color for unknown/future grades (matches COMMON). */
+const RARITY_FALLBACK = "#9aa7c2";
+
+export interface RarityStyle {
+  /** Hex color string for the grade (e.g. "#f6c552"). */
+  color: string;
+  /**
+   * Inline React style with `color` and `borderColor` set to the rarity hex.
+   * Apply directly on the badge element. Color is NOT a Tailwind token.
+   */
+  style: CSSProperties;
+  /** Tailwind classes for the chip shape only (no color utilities — color comes from `style`). */
+  className: string;
+}
+
+/**
+ * Game-accurate rarity color for a gear grade badge/chip.
+ *
+ * Uses inline style (not Tailwind) since these are exact game colors outside the token system.
+ * Falls back to COMMON color (#9aa7c2) for unknown grades.
+ * Existing gradeStyle() is unaffected — use that for token-based badge styles.
+ */
+export function rarityStyle(grade: string): RarityStyle {
+  const color = RARITY_COLOR[grade as GearGrade] ?? RARITY_FALLBACK;
+  return {
+    color,
+    style: { color, borderColor: color },
+    className: "text-xs px-1.5 py-0.5 rounded border",
+  };
 }
