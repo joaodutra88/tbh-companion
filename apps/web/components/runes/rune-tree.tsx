@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Plus, Minus, Maximize2 } from "lucide-react";
 import type { Recommendation } from "@tbh/engine";
 import { statusColor } from "@/lib/rune-colors";
+import { localized } from "@/lib/format";
 
 // ── RuneTree (SVG) ──────────────────────────────────────────────────────────
 // Árvore interativa de 197 nós: viewBox = bounds (origem negativa), um <g>
@@ -30,15 +31,17 @@ interface RuneTreeProps {
   nodes: Record<string, RuneNodeData>;
   edges: readonly (readonly [number, number])[];
   bounds: RuneBounds;
-  /** Caminho de DPS — aceito p/ a interface (T2 usa direto); o realce de
-   *  arestas/nós já vem de `node.onDpsPath`. */
+  /** Caminho de DPS — o realce de arestas/nós vem de `node.onDpsPath`; este
+   *  prop documenta a origem do dado (gating é por `showDps`). */
   firstDpsPath?: RuneTreeData["firstDpsPath"];
   selectedKey: string | null;
   onSelect?: (key: string) => void;
-  /** T2: orçamento (gold) p/ destacar nós acessíveis. Aceito, não aplicado aqui. */
+  /** Orçamento (gold): nós com `cost > budget` ficam "mudos". Default = ∞. */
   budget?: number;
-  /** T2: categoria ativa p/ filtro. Aceito, não aplicado aqui. */
+  /** Categoria ativa: nós de outra categoria ficam esmaecidos. Default = todas. */
   activeCat?: string | null;
+  /** Liga/desliga o realce do caminho de DPS (nós + arestas). Default = ligado. */
+  showDps?: boolean;
 }
 
 // ── Geometria pan/zoom ──────────────────────────────────────────────────────
@@ -75,6 +78,12 @@ interface RuneNodeElProps {
   nodeKey: string;
   n: RuneNodeData;
   selected: boolean;
+  /** Esmaecido pelo filtro de categoria (cat !== activeCat). */
+  dimmed: boolean;
+  /** Custo acima do orçamento (cost > budget) → tratamento "mudo". */
+  unaffordable: boolean;
+  /** Realce do caminho de DPS ligado. */
+  showDps: boolean;
   onSelect?: (key: string) => void;
   draggedRef: React.RefObject<boolean>;
 }
@@ -83,6 +92,9 @@ const RuneNodeEl = React.memo(function RuneNodeEl({
   nodeKey,
   n,
   selected,
+  dimmed,
+  unaffordable,
+  showDps,
   onSelect,
   draggedRef,
 }: RuneNodeElProps) {
@@ -93,13 +105,21 @@ const RuneNodeEl = React.memo(function RuneNodeEl({
     onSelect?.(nodeKey);
   }, [draggedRef, onSelect, nodeKey]);
 
+  // Esmaecimento: filtro de categoria tem prioridade sobre o orçamento.
+  const groupOpacity = dimmed ? 0.14 : unaffordable ? 0.42 : 1;
+
   return (
     <g
       className="rune-node"
+      data-key={nodeKey}
+      data-cat={n.cat}
+      data-dimmed={dimmed ? "true" : undefined}
+      data-unaffordable={unaffordable ? "true" : undefined}
+      opacity={groupOpacity}
       transform={`translate(${n.x} ${n.y})`}
       onClick={onSelect ? handleClick : undefined}
       role={onSelect ? "button" : undefined}
-      aria-label={n.name ?? `Runa ${nodeKey}`}
+      aria-label={localized(n.name) || `Runa ${nodeKey}`}
     >
       {/* important (combat AD/AS) → glow suave atrás */}
       {n.important ? (
@@ -109,8 +129,8 @@ const RuneNodeEl = React.memo(function RuneNodeEl({
       {selected ? (
         <circle r={NODE_R + 8} fill="none" stroke="var(--text)" strokeWidth={2.5} opacity={0.9} />
       ) : null}
-      {/* no caminho de DPS → contorno ouro tracejado */}
-      {n.onDpsPath ? (
+      {/* no caminho de DPS → contorno ouro tracejado (quando o realce está ligado) */}
+      {showDps && n.onDpsPath ? (
         <circle
           r={NODE_R + 5}
           fill="none"
@@ -166,6 +186,9 @@ export function RuneTree({
   bounds,
   selectedKey,
   onSelect,
+  budget = Infinity,
+  activeCat = null,
+  showDps = true,
 }: RuneTreeProps) {
   const { minX, minY } = bounds;
   const vbW = bounds.maxX - bounds.minX;
@@ -261,7 +284,7 @@ export function RuneTree({
         const p = nodes[a];
         const q = nodes[b];
         if (!p || !q) return null;
-        const dps = !!p.onDpsPath && !!q.onDpsPath;
+        const dps = showDps && !!p.onDpsPath && !!q.onDpsPath;
         return (
           <line
             key={i}
@@ -276,9 +299,12 @@ export function RuneTree({
           />
         );
       }),
-    [edges, nodes],
+    [edges, nodes, showDps],
   );
 
+  // Cada nó recebe `dimmed`/`unaffordable` já calculados (booleanos): trocar o
+  // orçamento só re-renderiza os nós que cruzaram o limite (React.memo); trocar
+  // a categoria/dps re-renderiza todos uma vez (ação deliberada, não hover).
   const nodeEls = useMemo(
     () =>
       Object.entries(nodes).map(([key, n]) => (
@@ -287,11 +313,14 @@ export function RuneTree({
           nodeKey={key}
           n={n}
           selected={key === selectedKey}
+          dimmed={activeCat != null && n.cat !== activeCat}
+          unaffordable={n.cost != null && n.cost > budget}
+          showDps={showDps}
           onSelect={onSelect}
           draggedRef={draggedRef}
         />
       )),
-    [nodes, selectedKey, onSelect],
+    [nodes, selectedKey, onSelect, activeCat, budget, showDps],
   );
 
   return (

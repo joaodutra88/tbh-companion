@@ -34,6 +34,56 @@ export const RUNE_STATUS_LABEL: Record<RuneStatus, string> = {
   skip: "Pular",
 };
 
+/**
+ * Classe(s) Tailwind do "ponto" colorido de cada status — usado pela legenda e
+ * pelo detalhe. Espelha as cores de nó de `COLORS` em tokens war-table (sem
+ * inline `var()`), pra um chip/ponto consistente com a árvore.
+ */
+export const RUNE_STATUS_DOT: Record<RuneStatus, string> = {
+  recommended: "bg-gold",
+  almostfree: "border border-gold bg-surface-2",
+  owned: "bg-teal",
+  maxed: "bg-teal/40",
+  available: "border border-line bg-surface-2",
+  locked: "border border-line bg-surface-2/40",
+  skip: "bg-coral/50",
+};
+
+// ── Categorias ────────────────────────────────────────────────────────────────
+// Decisão (spec 4b-i): a categoria = filtro (highlight), não a cor do nó.
+
+export type RuneCat = "combat" | "gold" | "qol" | "exp" | "loot" | "offline";
+
+/** Ordem de exibição dos chips de categoria. */
+export const RUNE_CATS: readonly RuneCat[] = [
+  "combat",
+  "gold",
+  "qol",
+  "exp",
+  "loot",
+  "offline",
+] as const;
+
+/** Rótulos PT-BR das categorias (chips de filtro / detalhe). */
+export const RUNE_CAT_LABEL: Record<RuneCat, string> = {
+  combat: "Combate",
+  gold: "Ouro",
+  qol: "Conforto",
+  exp: "EXP",
+  loot: "Saque",
+  offline: "Offline",
+};
+
+/** Narrow seguro: o `cat` do nó vem do engine como `string`. */
+export function isRuneCat(value: string): value is RuneCat {
+  return (RUNE_CATS as readonly string[]).includes(value);
+}
+
+/** Rótulo de categoria com fallback pro valor cru (categoria desconhecida). */
+export function catLabel(value: string): string {
+  return isRuneCat(value) ? RUNE_CAT_LABEL[value] : value;
+}
+
 export interface RuneNodeColor {
   /** Preenchimento do corpo do nó. */
   fill: string;
