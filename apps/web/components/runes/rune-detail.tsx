@@ -4,6 +4,7 @@ import React from "react";
 import { MousePointerClick } from "lucide-react";
 import type { Recommendation } from "@tbh/engine";
 import { fmt, fmtK, fmtDur, localized } from "@/lib/format";
+import { statLabel } from "@/lib/stat-labels";
 import {
   RUNE_STATUS_LABEL,
   RUNE_STATUS_DOT,
@@ -64,8 +65,19 @@ export function RuneDetail({ node }: RuneDetailProps) {
 
   return (
     <div className="rounded-lg border border-line bg-surface px-4 py-3">
-      {/* Cabeçalho: nome + status (chip) + categoria */}
+      {/* Cabeçalho: ícone + nome + status (chip) + categoria */}
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+        {node.icon ? (
+          <img
+            src={node.icon}
+            alt=""
+            aria-hidden="true"
+            className="size-7 shrink-0 rounded"
+            onError={(e) => {
+              (e.currentTarget as HTMLImageElement).style.display = "none";
+            }}
+          />
+        ) : null}
         <span className="text-[15px] font-semibold leading-tight text-text">
           {localized(node.name) || "Runa"}
         </span>
@@ -99,7 +111,9 @@ export function RuneDetail({ node }: RuneDetailProps) {
           <Field
             label="Efeito"
             value={
-              node.value != null ? `${node.st} +${fmtK(node.value)}` : node.st
+              node.value != null
+                ? `${statLabel(node.st)} +${fmtK(node.value)}`
+                : statLabel(node.st)
             }
           />
         ) : null}
