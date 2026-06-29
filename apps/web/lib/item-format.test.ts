@@ -1,0 +1,113 @@
+import { describe, it, expect } from "vitest";
+import type { GameDB } from "@tbh/engine";
+import { itemIcon, gearName, gradeStyle, GEAR_GRADES } from "./item-format";
+
+// ── Fixtures ──────────────────────────────────────────────────────────────────
+
+/** Minimal GameDB stub: only the `items` table is required. */
+const db = {
+  items: {
+    "300001": {
+      gt: "SWORD",
+      grade: "COMMON",
+      lvl: 1,
+      type: "GEAR",
+      icon: "/game/gear/sword/SWORD_300001.png",
+    },
+    "110001": {
+      grade: "COMMON",
+      type: "MATERIAL",
+      icon: "/game/items/materials/Item_110001.png",
+    },
+  },
+} as unknown as GameDB;
+
+// ── itemIcon ──────────────────────────────────────────────────────────────────
+
+describe("itemIcon", () => {
+  it("resolves the icon path for a known gear item", () => {
+    expect(itemIcon(300001, db)).toBe("/game/gear/sword/SWORD_300001.png");
+  });
+
+  it("accepts a string key", () => {
+    expect(itemIcon("300001", db)).toBe("/game/gear/sword/SWORD_300001.png");
+  });
+
+  it("resolves the icon for a material item", () => {
+    expect(itemIcon(110001, db)).toBe("/game/items/materials/Item_110001.png");
+  });
+
+  it("returns empty string for a missing item key", () => {
+    expect(itemIcon(999999, db)).toBe("");
+  });
+
+  it("returns empty string for an item without an icon field", () => {
+    const dbNoIcon = {
+      items: { "300001": { gt: "SWORD", grade: "COMMON", lvl: 1, type: "GEAR" } },
+    } as unknown as GameDB;
+    expect(itemIcon(300001, dbNoIcon)).toBe("");
+  });
+});
+
+// ── gearName ─────────────────────────────────────────────────────────────────
+
+describe("gearName", () => {
+  it("returns the English name for a known item key (number)", () => {
+    expect(gearName(300001)).toBe("Long Sword");
+  });
+
+  it("returns the English name for a known item key (string)", () => {
+    expect(gearName("300001")).toBe("Long Sword");
+  });
+
+  it("falls back to 'Item #K' for an unknown key", () => {
+    expect(gearName(999999)).toBe("Item #999999");
+    expect(gearName("888888")).toBe("Item #888888");
+  });
+});
+
+// ── gradeStyle ────────────────────────────────────────────────────────────────
+
+describe("gradeStyle — all 10 grades are defined", () => {
+  it("covers every grade in GEAR_GRADES", () => {
+    for (const grade of GEAR_GRADES) {
+      const style = gradeStyle(grade);
+      expect(style.label).toBeTruthy();
+      expect(style.className).toBeTruthy();
+    }
+  });
+
+  it("COMMON returns the lowest-tier (dim) style", () => {
+    const style = gradeStyle("COMMON");
+    expect(style.label).toBe("Comum");
+    expect(style.className).toContain("text-dim");
+  });
+
+  it("LEGENDARY returns a teal-accented style", () => {
+    const style = gradeStyle("LEGENDARY");
+    expect(style.className).toContain("teal");
+  });
+
+  it("ARCANA returns a gold-accented style", () => {
+    const style = gradeStyle("ARCANA");
+    expect(style.className).toContain("gold");
+  });
+
+  it("COSMIC returns the highest-tier (coral) style", () => {
+    const style = gradeStyle("COSMIC");
+    expect(style.label).toBe("Cósmico");
+    expect(style.className).toContain("coral");
+  });
+
+  it("unknown grade returns a neutral fallback with non-empty label and className", () => {
+    const style = gradeStyle("LEGENDARY_PLUS");
+    expect(style.label).toBeTruthy();
+    expect(style.className).toBeTruthy();
+  });
+
+  it("all 10 grades have distinct labels", () => {
+    const labels = GEAR_GRADES.map((g) => gradeStyle(g).label);
+    const unique = new Set(labels);
+    expect(unique.size).toBe(GEAR_GRADES.length);
+  });
+});
