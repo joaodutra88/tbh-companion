@@ -7,6 +7,7 @@ import type { RuneCat } from "@/lib/rune-colors";
 import { RuneTree, type RuneBounds } from "./rune-tree";
 import { RuneLegend } from "./rune-legend";
 import { RuneDetail } from "./rune-detail";
+import { RunePanels } from "./rune-panels";
 
 // ── RunesPane ───────────────────────────────────────────────────────────────
 // Orquestra a aba Runas: árvore interativa (T1) + legenda/filtro de categoria +
@@ -98,23 +99,29 @@ export function RunesPane({ rec }: RunesPaneProps) {
         onDpsToggle={() => setShowDps((v) => !v)}
       />
 
-      {/* Árvore (ocupa o espaço restante) */}
-      <div className="relative min-h-[440px] flex-1">
-        <RuneTree
-          nodes={nodes}
-          edges={edges}
-          bounds={asBounds(bounds)}
-          firstDpsPath={firstDpsPath}
-          selectedKey={selectedKey}
-          onSelect={setSelectedKey}
-          budget={budget}
-          activeCat={activeCat}
-          showDps={showDps}
-        />
-      </div>
+      {/* Árvore + painel lateral (detalhe + recomendadas + plano de gasto) */}
+      <div className="flex flex-col gap-3 md:flex-row md:items-start">
+        {/* Árvore — ocupa o espaço restante */}
+        <div className="relative min-h-[440px] flex-1">
+          <RuneTree
+            nodes={nodes}
+            edges={edges}
+            bounds={asBounds(bounds)}
+            firstDpsPath={firstDpsPath}
+            selectedKey={selectedKey}
+            onSelect={setSelectedKey}
+            budget={budget}
+            activeCat={activeCat}
+            showDps={showDps}
+          />
+        </div>
 
-      {/* Detalhe do nó selecionado */}
-      <RuneDetail node={selected} />
+        {/* Painel lateral: detalhe do nó + recomendadas + plano de gasto */}
+        <div className="flex w-full flex-col gap-3 md:w-80">
+          <RuneDetail node={selected} />
+          <RunePanels rec={rec} onSelect={setSelectedKey} />
+        </div>
+      </div>
     </div>
   );
 }
