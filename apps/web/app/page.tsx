@@ -7,6 +7,7 @@ import { Overview } from "@/components/overview/overview";
 import { FarmPane } from "@/components/farm/farm-pane";
 import { ChestsPane } from "@/components/chests/chests-pane";
 import { RunesPane } from "@/components/runes/runes-pane";
+import { GearPane } from "@/components/gear/gear-pane";
 import { useRecommendation } from "@/lib/recommendation-context";
 import { LanguageSelect } from "@/components/language-select";
 
@@ -74,6 +75,9 @@ function ActivePane({ tab, rec, db, recalibrate }: ActivePaneProps) {
   }
   if (tab === "runas") {
     return <RunesPane rec={rec} />;
+  }
+  if (tab === "gear") {
+    return <GearPane rec={rec} db={db} />;
   }
   return <Overview rec={rec} db={db} />;
 }
