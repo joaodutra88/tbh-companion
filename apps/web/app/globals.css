@@ -136,6 +136,26 @@
   font-family: var(--font-mono), monospace;
 }
 
+/* ── Rune tree (SVG) ──
+   Transição suave do pan/zoom no viewport (desligada durante o arrasto e, via
+   reset global de reduced-motion, quando o usuário pede menos animação). Hover
+   dos nós é 100% CSS — não re-renderiza a árvore (197 nós). */
+.rune-viewport {
+  transition: transform 0.12s ease-out;
+}
+.rune-viewport.dragging {
+  transition: none;
+}
+.rune-node {
+  cursor: pointer;
+}
+.rune-node > circle:last-child {
+  transition: filter 0.12s ease-out;
+}
+.rune-node:hover > circle:last-child {
+  filter: brightness(1.35) drop-shadow(0 0 4px rgba(232, 176, 75, 0.45));
+}
+
 /* ── Overview load reveal (staggered via inline animation-delay) ──
    Base state is visible; the keyframe drives the entrance. With
    prefers-reduced-motion the global reset disables it → element stays visible. */

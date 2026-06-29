@@ -14,7 +14,7 @@ const TABS: TabDef[] = [
   { id: "overview",  label: "Overview",  disabled: false },
   { id: "farm",      label: "Farm",      disabled: false },
   { id: "baus",      label: "Baús",      disabled: false },
-  { id: "runas",     label: "Runas",     disabled: true  },
+  { id: "runas",     label: "Runas",     disabled: false },
   { id: "gear",      label: "Gear",      disabled: true  },
   { id: "loja",      label: "Loja",      disabled: true  },
   { id: "vender",    label: "Vender",    disabled: true  },
