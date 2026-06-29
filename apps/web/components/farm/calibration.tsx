@@ -5,6 +5,18 @@ import { SlidersHorizontal, Loader2, Plus, X } from "lucide-react";
 import type { FarmRow, GameDB, RecommendOpts } from "@tbh/engine";
 import { StageName } from "@/components/stage-name";
 import { stageOptionText } from "@/lib/stage-format";
+import {
+  SelectRoot,
+  SelectTrigger,
+  SelectValue,
+  SelectIcon,
+  SelectPortal,
+  SelectPositioner,
+  SelectPopup,
+  SelectList,
+  SelectItem,
+  SelectItemText,
+} from "@/components/ui/select";
 
 // ── Calibration ───────────────────────────────────────────────────────────────
 // Honest, manual calibration: the player types their real clear time (seconds) for
@@ -102,18 +114,36 @@ export function Calibration({ current, rows, db, recalibrate }: CalibrationProps
             {/* Optional second stage (fit) */}
             {showExtra ? (
               <div className="flex items-center gap-2 text-[13px]">
-                <select
-                  value={extraKey}
-                  onChange={(e) => setExtraKey(e.target.value)}
-                  className="w-40 shrink-0 rounded-md border border-line bg-bg px-1.5 py-1.5 text-[12px] text-text outline-none focus:border-gold/60"
+                {/* shadcn Select replaces the native <select> — dark themed, accessible */}
+                <SelectRoot<string | null>
+                  value={extraKey !== "" ? extraKey : null}
+                  onValueChange={(v) => setExtraKey(v ?? "")}
                 >
-                  <option value="">2º stage…</option>
-                  {otherStages.map((r) => (
-                    <option key={r.key} value={r.key}>
-                      {db != null ? stageOptionText(db, r.key) : (r.label ?? String(r.key))}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger
+                    aria-label="2º stage para calibração"
+                    className="w-40 shrink-0"
+                  >
+                    <SelectValue placeholder="2º stage…" />
+                    <SelectIcon />
+                  </SelectTrigger>
+                  <SelectPortal>
+                    <SelectPositioner>
+                      <SelectPopup>
+                        <SelectList>
+                          {otherStages.map((r) => (
+                            <SelectItem key={r.key} value={r.key}>
+                              <SelectItemText>
+                                {db != null
+                                  ? stageOptionText(db, r.key)
+                                  : (r.label ?? String(r.key))}
+                              </SelectItemText>
+                            </SelectItem>
+                          ))}
+                        </SelectList>
+                      </SelectPopup>
+                    </SelectPositioner>
+                  </SelectPortal>
+                </SelectRoot>
                 <input
                   type="number"
                   inputMode="numeric"

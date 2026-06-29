@@ -6,6 +6,7 @@ import type { GameDB, HeroStat } from "@tbh/engine";
 import type { LevelInfo } from "@tbh/engine";
 import { fmt, fmtK, fmtDur, heroIcon, heroName } from "@/lib/format";
 import { useEntityLocale } from "@/lib/entity-locale";
+import { TooltipRoot, TooltipTrigger, TooltipPortal, TooltipPositioner, TooltipPopup } from "@/components/ui/tooltip";
 
 // ── HeroSprite ──────────────────────────────────────────────────────────────
 // Portrait with graceful fallback: a missing/broken sprite collapses to the
@@ -109,13 +110,19 @@ export function HeroCard({ hero, level, db, partyDPS, isCarry }: HeroCardProps) 
               {fmt(hero.power)}
             </span>
             {ap > 0 && (
-              <span
-                title="Pontos de habilidade não usados"
-                className="ml-auto inline-flex items-center gap-1 rounded bg-gold/12 px-1.5 py-0.5 text-[10px] font-medium text-gold tabular-nums"
-              >
-                <span className="size-1.5 rounded-full bg-gold" aria-hidden="true" />
-                {ap} AP
-              </span>
+              <TooltipRoot>
+                <TooltipTrigger
+                  render={<span className="ml-auto inline-flex items-center gap-1 rounded bg-gold/12 px-1.5 py-0.5 text-[10px] font-medium text-gold tabular-nums cursor-default" />}
+                >
+                  <span className="size-1.5 rounded-full bg-gold" aria-hidden="true" />
+                  {ap} AP
+                </TooltipTrigger>
+                <TooltipPortal>
+                  <TooltipPositioner side="top">
+                    <TooltipPopup>Pontos de habilidade não usados</TooltipPopup>
+                  </TooltipPositioner>
+                </TooltipPortal>
+              </TooltipRoot>
             )}
           </div>
         </div>

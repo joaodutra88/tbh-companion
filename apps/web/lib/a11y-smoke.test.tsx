@@ -49,22 +49,68 @@ beforeEach(() => {
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 describe("A11y + quick-win (smoke)", () => {
-  it("AppShell: <nav> oculta quando ready=false, visível quando ready=true", () => {
+  it("AppShell: tablist oculto quando ready=false, visível quando ready=true; tabpanel sempre presente", () => {
     const { rerender } = render(
       <AppShell ready={false} activeTab="overview" onTabChange={vi.fn()}>
         <div>content</div>
       </AppShell>,
     );
-    // Nav must be absent when save is not loaded
-    expect(screen.queryByRole("navigation")).toBeNull();
+    // Tablist (nav) must be absent when save is not loaded
+    expect(screen.queryByRole("tablist")).toBeNull();
+    expect(screen.queryByRole("tab")).toBeNull();
+    // But the panel (wrapping children) is always present
+    expect(screen.getByRole("tabpanel")).toBeTruthy();
 
     rerender(
       <AppShell ready={true} activeTab="overview" onTabChange={vi.fn()}>
         <div>content</div>
       </AppShell>,
     );
-    // Nav must appear once save is ready
-    expect(screen.getByRole("navigation")).toBeTruthy();
+    // Tablist must appear once save is ready
+    expect(screen.getByRole("tablist")).toBeTruthy();
+    // All tabs must be present (8 tabs defined)
+    expect(screen.getAllByRole("tab").length).toBe(8);
+  });
+
+  it("AppShell: tab ativo tem aria-selected=true e controla o painel via aria-controls", () => {
+    render(
+      <AppShell ready={true} activeTab="farm" onTabChange={vi.fn()}>
+        <div>farm content</div>
+      </AppShell>,
+    );
+    // The "Farm" tab must be selected
+    const farmTab = screen.getByRole("tab", { name: "Farm" });
+    expect(farmTab.getAttribute("aria-selected")).toBe("true");
+
+    // The panel must exist with role="tabpanel"
+    const panel = screen.getByRole("tabpanel");
+    expect(panel).toBeTruthy();
+
+    // aria-controls on the active tab must point to the panel id
+    const controls = farmTab.getAttribute("aria-controls");
+    expect(controls).not.toBeNull();
+    const panelId = panel.getAttribute("id");
+    expect(panelId).not.toBeNull();
+    expect(controls).toBe(panelId);
+  });
+
+  it("AppShell: tabs desabilitados têm aria-disabled=true (Base UI usa aria-disabled, não native disabled)", () => {
+    render(
+      <AppShell ready={true} activeTab="overview" onTabChange={vi.fn()}>
+        <div>content</div>
+      </AppShell>,
+    );
+    // "Gear", "Loja", "Vender", "Histórico" are disabled.
+    // Base UI Tabs.Tab exposes disabled state via aria-disabled="true" on the composite item
+    // (not the native HTML disabled attribute, so keyboard focus/navigation still works).
+    const disabledTabs = screen
+      .getAllByRole("tab")
+      .filter(
+        (el) =>
+          el.getAttribute("aria-disabled") === "true" ||
+          el.hasAttribute("disabled"),
+      );
+    expect(disabledTabs.length).toBe(4);
   });
 
   it("ConnectSave: CTA mostra spinner (.animate-spin) enquanto status=loading", () => {

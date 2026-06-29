@@ -1,6 +1,8 @@
 "use client";
 
 import React from "react";
+import { TabsRoot, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { TooltipRoot, TooltipTrigger, TooltipPortal, TooltipPositioner, TooltipPopup } from "@/components/ui/tooltip";
 
 // ── Tab definitions ──────────────────────────────────────────────────────────
 
@@ -62,87 +64,50 @@ export function AppShell({
         </div>
       </header>
 
-      {/* ── Tab navigation — hidden until save is ready ── */}
-      {ready && (
-        <nav aria-label="Seções do app" className="bg-surface border-b border-line shrink-0">
-          {/* role="tablist" required by ARIA tab pattern */}
-          <div
-            role="tablist"
-            className="flex overflow-x-auto px-4 gap-0.5"
-            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-          >
-            {TABS.map((tab) => (
-              <TabButton
-                key={tab.id}
-                tab={tab}
-                isActive={tab.id === activeTab}
-                onTabChange={onTabChange}
-              />
-            ))}
-          </div>
-        </nav>
-      )}
+      {/* ── Tabs: nav + main content ── */}
+      <TabsRoot
+        value={activeTab}
+        onValueChange={(v) => onTabChange(v as string)}
+        className="flex-1 flex flex-col min-h-0"
+      >
+        {/* Tab navigation — hidden until save is ready */}
+        {ready && (
+          <nav aria-label="Seções do app" className="bg-surface border-b border-line shrink-0">
+            <TabsList className="px-4">
+              {TABS.map((tab) =>
+                tab.disabled ? (
+                  // Disabled tab: wrapped in Tooltip so "em breve" is keyboard+hover accessible.
+                  // TooltipTrigger renders as <span> so pointer events reach it even though
+                  // the inner <button disabled> can't be focused/clicked.
+                  <TooltipRoot key={tab.id}>
+                    <TooltipTrigger
+                      render={<span className="inline-flex shrink-0 -mb-px" />}
+                    >
+                      <TabsTrigger value={tab.id} disabled>
+                        {tab.label}
+                      </TabsTrigger>
+                    </TooltipTrigger>
+                    <TooltipPortal>
+                      <TooltipPositioner side="bottom">
+                        <TooltipPopup>em breve</TooltipPopup>
+                      </TooltipPositioner>
+                    </TooltipPortal>
+                  </TooltipRoot>
+                ) : (
+                  <TabsTrigger key={tab.id} value={tab.id}>
+                    {tab.label}
+                  </TabsTrigger>
+                ),
+              )}
+            </TabsList>
+          </nav>
+        )}
 
-      {/* ── Main content ── */}
-      <main className="flex-1 flex flex-col min-h-0">
-        {children}
-      </main>
+        {/* Main content — always rendered; value matches active tab so panel is always visible */}
+        <TabsContent value={activeTab}>
+          {children}
+        </TabsContent>
+      </TabsRoot>
     </div>
-  );
-}
-
-// ── TabButton ─────────────────────────────────────────────────────────────────
-
-interface TabButtonProps {
-  tab: TabDef;
-  isActive: boolean;
-  onTabChange: (id: string) => void;
-}
-
-function TabButton({ tab, isActive, onTabChange }: TabButtonProps) {
-  const baseClass =
-    "inline-flex items-center py-[10px] px-[14px] " +
-    "text-[13px] font-body font-medium whitespace-nowrap " +
-    "border-b-2 bg-transparent " +
-    "select-none shrink-0 transition-colors duration-150 -mb-px " +
-    (tab.disabled ? "cursor-default" : "cursor-pointer");
-
-  if (tab.disabled) {
-    return (
-      <button
-        role="tab"
-        aria-selected="false"
-        aria-disabled="true"
-        title="em breve"
-        tabIndex={-1}
-        className={`${baseClass} text-dim border-b-transparent opacity-55`}
-      >
-        {tab.label}
-      </button>
-    );
-  }
-
-  if (isActive) {
-    return (
-      <button
-        role="tab"
-        aria-selected="true"
-        onClick={() => onTabChange(tab.id)}
-        className={`${baseClass} text-gold border-b-gold`}
-      >
-        {tab.label}
-      </button>
-    );
-  }
-
-  return (
-    <button
-      role="tab"
-      aria-selected="false"
-      onClick={() => onTabChange(tab.id)}
-      className={`${baseClass} text-dim border-b-transparent hover:text-text`}
-    >
-      {tab.label}
-    </button>
   );
 }
