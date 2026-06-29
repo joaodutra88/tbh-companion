@@ -67,7 +67,7 @@ export function AppShell({
       {/* ── Tabs: nav + main content ── */}
       <TabsRoot
         value={activeTab}
-        onValueChange={(v) => onTabChange(v as string)}
+        onValueChange={(v) => { if (typeof v === "string") onTabChange(v); }}
         className="flex-1 flex flex-col min-h-0"
       >
         {/* Tab navigation — hidden until save is ready */}
@@ -81,7 +81,7 @@ export function AppShell({
                   // the inner <button disabled> can't be focused/clicked.
                   <TooltipRoot key={tab.id}>
                     <TooltipTrigger
-                      render={<span className="inline-flex shrink-0 -mb-px" />}
+                      render={<span className="inline-flex shrink-0 -mb-px" tabIndex={0} role="button" aria-disabled="true" />}
                     >
                       <TabsTrigger value={tab.id} disabled>
                         {tab.label}
@@ -103,10 +103,23 @@ export function AppShell({
           </nav>
         )}
 
-        {/* Main content — always rendered; value matches active tab so panel is always visible */}
-        <TabsContent value={activeTab}>
-          {children}
-        </TabsContent>
+        {/* Main content — one panel per enabled tab with keepMounted so every
+            enabled tab's aria-controls resolves to a real DOM node.
+            Inactive panels stay mounted but empty; when ready=false the
+            fallback div renders children outside any tabpanel (no orphan
+            role="tabpanel" before the save is loaded). */}
+        {ready
+          ? TABS.filter((t) => !t.disabled).map((t) => (
+              <TabsContent key={t.id} value={t.id} keepMounted>
+                {t.id === activeTab ? children : null}
+              </TabsContent>
+            ))
+          : (
+              <div className="flex-1 flex flex-col min-h-0">
+                {children}
+              </div>
+            )
+        }
       </TabsRoot>
     </div>
   );

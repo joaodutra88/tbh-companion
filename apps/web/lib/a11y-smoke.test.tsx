@@ -49,7 +49,7 @@ beforeEach(() => {
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 describe("A11y + quick-win (smoke)", () => {
-  it("AppShell: tablist oculto quando ready=false, visível quando ready=true; tabpanel sempre presente", () => {
+  it("AppShell: tablist oculto quando ready=false, visível quando ready=true; tabpanel ausente antes do ready", () => {
     const { rerender } = render(
       <AppShell ready={false} activeTab="overview" onTabChange={vi.fn()}>
         <div>content</div>
@@ -58,8 +58,8 @@ describe("A11y + quick-win (smoke)", () => {
     // Tablist (nav) must be absent when save is not loaded
     expect(screen.queryByRole("tablist")).toBeNull();
     expect(screen.queryByRole("tab")).toBeNull();
-    // But the panel (wrapping children) is always present
-    expect(screen.getByRole("tabpanel")).toBeTruthy();
+    // No orphan tabpanel before the save is loaded (panels live inside {ready && …})
+    expect(screen.queryByRole("tabpanel")).toBeNull();
 
     rerender(
       <AppShell ready={true} activeTab="overview" onTabChange={vi.fn()}>
@@ -70,6 +70,8 @@ describe("A11y + quick-win (smoke)", () => {
     expect(screen.getByRole("tablist")).toBeTruthy();
     // All tabs must be present (8 tabs defined)
     expect(screen.getAllByRole("tab").length).toBe(8);
+    // Active tab's panel is accessible in the a11y tree
+    expect(screen.getByRole("tabpanel")).toBeTruthy();
   });
 
   it("AppShell: tab ativo tem aria-selected=true e controla o painel via aria-controls", () => {
@@ -92,6 +94,26 @@ describe("A11y + quick-win (smoke)", () => {
     const panelId = panel.getAttribute("id");
     expect(panelId).not.toBeNull();
     expect(controls).toBe(panelId);
+  });
+
+  it("AppShell: tab inativa habilitada tem aria-controls que resolve para painel no DOM (keepMounted)", () => {
+    const { container } = render(
+      <AppShell ready={true} activeTab="farm" onTabChange={vi.fn()}>
+        <div>farm content</div>
+      </AppShell>,
+    );
+    // "Overview" is enabled but NOT the active tab (farm is active)
+    const overviewTab = screen.getByRole("tab", { name: "Overview" });
+    expect(overviewTab.getAttribute("aria-selected")).not.toBe("true");
+
+    const controls = overviewTab.getAttribute("aria-controls");
+    expect(controls).not.toBeNull();
+
+    // Panel must exist in the DOM even though hidden (keepMounted keeps it mounted)
+    // so aria-controls doesn't dangle — fixes the ARIA Tabs pattern gap
+    const panel = container.ownerDocument.getElementById(controls!);
+    expect(panel).not.toBeNull();
+    expect(panel!.getAttribute("role")).toBe("tabpanel");
   });
 
   it("AppShell: tabs desabilitados têm aria-disabled=true (Base UI usa aria-disabled, não native disabled)", () => {
