@@ -1,8 +1,8 @@
 "use client";
 
 import React from "react";
-import { Crosshair, Check, Info } from "lucide-react";
-import type { FarmRow, GameDB, Recommendation, RecommendOpts } from "@tbh/engine";
+import { Crosshair, Check, Info, Anchor } from "lucide-react";
+import type { FarmRow, GameDB, ParkStage, Recommendation, RecommendOpts } from "@tbh/engine";
 import { fmtPerHour, fmtDur } from "@/lib/format";
 import { StageTable } from "./stage-table";
 import { Calibration } from "./calibration";
@@ -14,7 +14,8 @@ import { Projections } from "./projections";
 // ledger, manual calibration, the offline/idle curve, and forward projections.
 // War-table theme — gold for gold-rates, teal for exp, coral for risk.
 
-// Honest calibration copy keyed to the engine's calSource.
+// Honest calibration copy keyed to the engine's calSource (all except 'rate',
+// which gets a special live-auto-cal badge in the card).
 const CAL_LABELS: Record<string, string> = {
   model: "estimado pelo modelo",
   rate: "calibrado pela sua taxa",
@@ -126,13 +127,97 @@ function RecommendedCard({
           <span className="rounded-full bg-teal/12 px-2 py-0.5 text-[11px] font-medium tabular-nums text-teal">
             +{expBonusPct}% exp
           </span>
-          <span className="ml-auto inline-flex items-center gap-1.5 text-[11px] text-dim">
-            <Info className="size-3" aria-hidden="true" />
-            {calLabel(calSource)}
-          </span>
+          {calSource === "rate" ? (
+            <span className="ml-auto inline-flex items-center gap-1.5 text-[11px] text-teal">
+              <Check className="size-3" aria-hidden="true" />
+              auto-calibrado pela sua taxa (live)
+            </span>
+          ) : (
+            <span className="ml-auto inline-flex items-center gap-1.5 text-[11px] text-dim">
+              <Info className="size-3" aria-hidden="true" />
+              {calLabel(calSource)}
+            </span>
+          )}
         </div>
       </div>
     </section>
+  );
+}
+
+// ── Auto-farm action highlights ───────────────────────────────────────────────
+// Prominent action block at the top of the Farm pane — always shows where to
+// leave the auto-clear running, and (when offline is unlocked) where to park.
+
+interface AutoFarmHighlightsProps {
+  recommend: FarmRow;
+  bestPark: ParkStage | null | undefined;
+  db: GameDB | null;
+}
+
+function AutoFarmHighlights({ recommend, bestPark, db }: AutoFarmHighlightsProps) {
+  const recName = db?.stages[recommend.key]?.label ?? recommend.label ?? recommend.key;
+  const parkName = bestPark
+    ? (db?.stages[bestPark.key]?.label ?? bestPark.label ?? bestPark.key)
+    : null;
+
+  return (
+    <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+      {/* 🔄 Deixa rolando aqui — melhor stage pra auto-clear ativo */}
+      <section
+        aria-label="Deixa rolando — auto-farm"
+        className="rounded-lg border border-gold/30 bg-surface p-4"
+      >
+        <div className="mb-2 flex items-center gap-1.5">
+          <span aria-hidden="true" className="text-[14px] leading-none">🔄</span>
+          <span className="text-[11px] font-semibold uppercase tracking-[0.15em] text-gold">
+            Deixa rolando aqui
+          </span>
+        </div>
+        <p className="text-[20px] font-semibold leading-tight text-text">
+          Stage {recName}
+        </p>
+        <p className="text-[11px] tabular-nums text-dim">nível {recommend.lvl}</p>
+        <div className="mt-2 flex items-baseline gap-3">
+          <span className="font-mono text-[13px] font-semibold tabular-nums text-gold">
+            {fmtPerHour(recommend.goldPerHour)}
+            <span className="text-[10px] font-normal text-dim"> gold/h</span>
+          </span>
+          <span className="text-[10px] text-dim/40">·</span>
+          <span className="font-mono text-[13px] font-semibold tabular-nums text-teal">
+            {fmtPerHour(recommend.expPerHour)}
+            <span className="text-[10px] font-normal text-dim"> exp/h</span>
+          </span>
+        </div>
+        <p className="mt-2 text-[11px] leading-snug text-dim">
+          Deixe o auto-clear nesta fase — melhor gold/exp por hora.
+        </p>
+      </section>
+
+      {/* 💤 Estaciona offline aqui — só renderiza quando bestPark existe */}
+      {bestPark && (
+        <section
+          aria-label="Estaciona offline aqui"
+          className="rounded-lg border border-line bg-surface p-4"
+        >
+          <div className="mb-2 flex items-center gap-1.5">
+            <span aria-hidden="true" className="text-[14px] leading-none">💤</span>
+            <span className="text-[11px] font-semibold uppercase tracking-[0.15em] text-dim">
+              Estaciona offline aqui
+            </span>
+          </div>
+          <p className="text-[20px] font-semibold leading-tight text-text">
+            Stage {parkName}
+          </p>
+          <p className="text-[11px] tabular-nums text-dim">nível {bestPark.lvl}</p>
+          <div className="mt-2 flex items-center gap-1.5 text-[11px] text-dim">
+            <Anchor className="size-3 shrink-0" aria-hidden="true" />
+            <span>
+              Antes de fechar o jogo, pare nesta fase pra melhor recompensa offline.
+            </span>
+          </div>
+        </section>
+      )}
+    </div>
   );
 }
 
@@ -155,6 +240,14 @@ export function FarmPane({ rec, db, recalibrate }: FarmPaneProps) {
       {recommend ? (
         <>
           <div className="reveal">
+            <AutoFarmHighlights
+              recommend={recommend}
+              bestPark={idle.bestPark}
+              db={db}
+            />
+          </div>
+
+          <div className="reveal" style={{ animationDelay: "30ms" }}>
             <RecommendedCard
               recommend={recommend}
               onBest={farm.onBest}

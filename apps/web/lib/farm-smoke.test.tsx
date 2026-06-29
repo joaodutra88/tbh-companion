@@ -39,6 +39,27 @@ describe("FarmPane (smoke)", () => {
     render(<FarmPane rec={rec} db={db} recalibrate={vi.fn()} />);
     expect(screen.getByRole("button", { name: /Calibrar/i })).toBeTruthy();
   });
+
+  it("shows 'Deixa rolando' highlight with farm.recommend stage name; shows 'Estaciona offline' when bestPark exists", async () => {
+    const rec: Recommendation = await runRecommend(getDemoSaveText(), { elapsedSec: 0 });
+    const db: GameDB = await loadGameDB();
+    render(<FarmPane rec={rec} db={db} recalibrate={vi.fn()} />);
+
+    // "Deixa rolando" action block is always rendered when recommend exists.
+    expect(screen.getByLabelText("Deixa rolando — auto-farm")).toBeTruthy();
+    const recName =
+      db.stages[rec.farm.recommend!.key]?.label ??
+      rec.farm.recommend!.label ??
+      rec.farm.recommend!.key;
+    expect(screen.getAllByText(new RegExp(`Stage ${recName}`)).length).toBeGreaterThan(0);
+
+    // "Estaciona offline" block renders only when bestPark exists.
+    if (rec.idle.bestPark) {
+      expect(screen.getByLabelText("Estaciona offline aqui")).toBeTruthy();
+    } else {
+      expect(screen.queryByLabelText("Estaciona offline aqui")).toBeNull();
+    }
+  });
 });
 
 describe("sortRows (comparator)", () => {
