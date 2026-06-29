@@ -37,7 +37,7 @@ describe("RunesPane (smoke)", () => {
   it("começa sem nó selecionado (mostra a dica de hover/clique)", async () => {
     const rec = await demoRec();
     const { container } = render(<RunesPane rec={rec} />);
-    expect(container.textContent).toContain("Passe o mouse ou clique num nó");
+    expect(container.textContent).toContain("Clique num nó da árvore");
   });
 
   it("clicar num nó popula o detalhe (nome + custo do nó)", async () => {
@@ -57,7 +57,7 @@ describe("RunesPane (smoke)", () => {
     fireEvent.click(target!);
 
     // A dica some e nome + custo formatado do nó aparecem no detalhe.
-    expect(container.textContent).not.toContain("Passe o mouse ou clique");
+    expect(container.textContent).not.toContain("Clique num nó da árvore");
     expect(container.textContent).toContain(localized(node.name));
     expect(container.textContent).toContain(fmt(node.cost!));
   });
