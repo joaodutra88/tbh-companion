@@ -4,8 +4,11 @@ import type { GameDB } from "@tbh/engine";
 
 // ── Difficulty maps ───────────────────────────────────────────────────────────
 
+/** União de todas as chaves de dificuldade válidas. */
+export type DiffKey = "NORMAL" | "NIGHTMARE" | "HELL" | "TORMENT";
+
 /** PT-BR label for each raw difficulty key (verbatim from spec). */
-export const DIFF_LABEL: Record<string, string> = {
+export const DIFF_LABEL: Record<DiffKey, string> = {
   NORMAL: "Normal",
   NIGHTMARE: "Pesadelo",
   HELL: "Inferno",
@@ -22,7 +25,7 @@ export const DIFF_ORDER = ["NORMAL", "NIGHTMARE", "HELL", "TORMENT"] as const;
  * Escalates: Normal (subtle) → Pesadelo → Inferno → Tormento (vivid/alert).
  * Returns "" when diff is absent or unknown (graceful: caller skips the chip).
  */
-export function diffTone(diff: string): string {
+export function diffTone(diff: string | undefined): string {
   switch (diff) {
     case "NORMAL":
       return "text-dim";
@@ -51,7 +54,10 @@ export function stageOptionText(db: GameDB, key: string): string {
 
   const label = stage.label ?? String(key);
   const nv = stage.lvl;
-  const diffLabel = stage.diff ? DIFF_LABEL[stage.diff] : undefined;
+  const diffLabel =
+    stage.diff != null && stage.diff in DIFF_LABEL
+      ? DIFF_LABEL[stage.diff as DiffKey]
+      : undefined;
 
   if (diffLabel) {
     return `${diffLabel} · ${label} (nv ${nv})`;

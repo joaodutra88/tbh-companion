@@ -81,7 +81,7 @@ export function Calibration({ current, rows, db, recalibrate }: CalibrationProps
           <div className="flex flex-col gap-2.5">
             {/* Primary: current stage */}
             <label className="flex items-center gap-2 text-[13px]">
-              <span className="w-28 shrink-0 text-dim">
+              <span className="w-28 min-w-0 overflow-hidden text-dim">
                 Stage{" "}
                 <StageName
                   label={curName ?? current.key}

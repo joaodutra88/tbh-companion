@@ -5,7 +5,7 @@ import React from "react";
 import { getDemoSaveText, loadGameDB } from "@tbh/game-data";
 import type { GameDB } from "@tbh/engine";
 import { StageName } from "@/components/stage-name";
-import { stageOptionText, DIFF_LABEL } from "@/lib/stage-format";
+import { stageOptionText, DIFF_LABEL, type DiffKey } from "@/lib/stage-format";
 
 afterEach(() => cleanup());
 
@@ -76,7 +76,10 @@ describe("StageName — difficulty chip (smoke)", () => {
     const { container } = render(<StageName db={db} stageKey={key} />);
 
     // The PT-BR difficulty label should appear if we have a mapping for it.
-    const ptLabel = DIFF_LABEL[stage.diff!];
+    const ptLabel =
+      stage.diff != null && stage.diff in DIFF_LABEL
+        ? DIFF_LABEL[stage.diff as DiffKey]
+        : undefined;
     if (ptLabel) {
       expect(container.textContent).toContain(ptLabel);
     }
@@ -95,7 +98,10 @@ describe("calibration <option> text — stageOptionText (smoke)", () => {
 
     const stage = db.stages[key]!;
     const text = stageOptionText(db, key);
-    const ptLabel = DIFF_LABEL[stage.diff!];
+    const ptLabel =
+      stage.diff != null && stage.diff in DIFF_LABEL
+        ? DIFF_LABEL[stage.diff as DiffKey]
+        : undefined;
 
     if (ptLabel) {
       expect(text).toContain(ptLabel);

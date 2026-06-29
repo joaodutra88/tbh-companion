@@ -2,25 +2,33 @@
 
 import React from "react";
 import type { GameDB } from "@tbh/engine";
-import { DIFF_LABEL } from "@/lib/stage-format";
+import { DIFF_LABEL, diffTone, type DiffKey } from "@/lib/stage-format";
 
 // ── Difficulty chip ────────────────────────────────────────────────────────────
 // Compact, bordered chip — visually distinct from the gold/teal rate numbers
 // that surround stage labels in the war-table UI.
 
-function diffChipClasses(diff: string): string {
+/** Background + border tint por tier — cor do texto vem de diffTone() (fonte única). */
+function diffChipBgBorder(diff: string | undefined): string {
   switch (diff) {
     case "NORMAL":
-      return "border border-line/60 bg-surface-2 text-dim";
+      return "border border-line/60 bg-surface-2";
     case "NIGHTMARE":
-      return "border border-teal/40 bg-teal/10 text-teal";
+      return "border border-teal/40 bg-teal/10";
     case "HELL":
-      return "border border-gold/40 bg-gold/10 text-gold";
+      return "border border-gold/40 bg-gold/10";
     case "TORMENT":
-      return "border border-coral/40 bg-coral/10 text-coral";
+      return "border border-coral/40 bg-coral/10";
     default:
       return "";
   }
+}
+
+/** Classes completas do chip: tint bg/border + cor de texto via diffTone (fonte única). */
+function diffChipClasses(diff: string | undefined): string {
+  const bgBorder = diffChipBgBorder(diff);
+  if (!bgBorder) return "";
+  return `${bgBorder} ${diffTone(diff)}`;
 }
 
 // ── Props ─────────────────────────────────────────────────────────────────────
@@ -70,8 +78,9 @@ export function StageName({
     lvl = lvlProp;
   }
 
-  const diffLabel = diff ? DIFF_LABEL[diff] : undefined;
-  const chipClasses = diff && diffLabel ? diffChipClasses(diff) : "";
+  const diffLabel =
+    diff != null && diff in DIFF_LABEL ? DIFF_LABEL[diff as DiffKey] : undefined;
+  const chipClasses = diffChipClasses(diff);
 
   return (
     <span className="inline-flex flex-wrap items-baseline gap-1.5">

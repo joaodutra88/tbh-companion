@@ -49,7 +49,7 @@ describe("diffTone", () => {
   it("returns empty string for unknown or empty diff", () => {
     expect(diffTone("")).toBe("");
     expect(diffTone("UNKNOWN")).toBe("");
-    expect(diffTone(undefined as unknown as string)).toBe("");
+    expect(diffTone(undefined)).toBe("");
   });
 });
 
