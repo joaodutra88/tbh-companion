@@ -78,7 +78,7 @@ export function IdleSection({ idle, db }: IdleSectionProps) {
         <h2 className="text-[11px] font-semibold uppercase tracking-wider text-dim">
           Idle / Offline
         </h2>
-        <span className="ml-auto inline-flex items-center gap-1 text-[11px] text-dim/70">
+        <span className="ml-auto inline-flex items-center gap-1 text-[11px] text-dim">
           <Clock className="size-3" aria-hidden="true" />
           cap {capHours}h
         </span>
@@ -109,7 +109,7 @@ export function IdleSection({ idle, db }: IdleSectionProps) {
             <span className="inline-flex items-center gap-1.5 text-[15px] font-semibold text-text">
               <Anchor className="size-3.5 text-gold" aria-hidden="true" />
               <span className="tabular-nums">{parkName}</span>
-              <span className="text-[11px] font-normal tabular-nums text-dim/70">
+              <span className="text-[11px] font-normal tabular-nums text-dim">
                 nv {park.lvl}
               </span>
             </span>

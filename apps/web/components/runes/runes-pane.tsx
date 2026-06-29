@@ -159,7 +159,7 @@ export function RunesPane({ rec }: RunesPaneProps) {
             onClick={() => setSelectedKey(String(bestRune.key))}
             className="relative mt-3 rounded border border-gold/40 bg-gold/10 px-3 py-1 text-[12px] font-medium text-gold transition-colors hover:bg-gold/20"
           >
-            ver na árvore
+            Ver na árvore
           </button>
         </section>
       ) : null}

@@ -199,7 +199,7 @@ describe("RunePanels (smoke)", () => {
     const onSelect = vi.fn();
     const { getByRole } = render(<RunePanels rec={rec} onSelect={onSelect} />);
 
-    const btn = getByRole("button", { name: /ver na árvore/ });
+    const btn = getByRole("button", { name: /ver na árvore/i });
     fireEvent.click(btn);
     expect(onSelect).toHaveBeenCalledOnce();
     expect(onSelect.mock.calls[0][0]).toBe(

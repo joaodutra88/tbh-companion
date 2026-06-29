@@ -31,6 +31,8 @@ interface AppShellProps {
   activeTab: string;
   /** Called when the user clicks an enabled tab. */
   onTabChange: (id: string) => void;
+  /** When false the tab nav is hidden (save not yet loaded). */
+  ready?: boolean;
 }
 
 // ── Component ────────────────────────────────────────────────────────────────
@@ -40,16 +42,17 @@ export function AppShell({
   statusSlot,
   activeTab,
   onTabChange,
+  ready = false,
 }: AppShellProps) {
   return (
     <div className="min-h-screen flex flex-col bg-bg text-text">
       {/* ── Top bar ── */}
       <header className="flex items-center justify-between px-4 md:px-6 h-[52px] bg-surface border-b border-line shrink-0">
-        {/* Logo */}
-        <span className="select-none font-display font-semibold text-[18px] tracking-[-0.01em] text-text">
+        {/* Logo — h1 for document heading hierarchy */}
+        <h1 className="select-none font-display font-semibold text-[18px] tracking-[-0.01em] text-text">
           TBH{" "}
           <span className="text-gold">Companion</span>
-        </span>
+        </h1>
 
         {/* Right-side status/save slot */}
         <div className="flex items-center gap-3 min-w-0">
@@ -59,24 +62,26 @@ export function AppShell({
         </div>
       </header>
 
-      {/* ── Tab navigation ── */}
-      <nav aria-label="Seções do app" className="bg-surface border-b border-line shrink-0">
-        {/* role="tablist" required by ARIA tab pattern */}
-        <div
-          role="tablist"
-          className="flex overflow-x-auto px-4 gap-0.5"
-          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-        >
-          {TABS.map((tab) => (
-            <TabButton
-              key={tab.id}
-              tab={tab}
-              isActive={tab.id === activeTab}
-              onTabChange={onTabChange}
-            />
-          ))}
-        </div>
-      </nav>
+      {/* ── Tab navigation — hidden until save is ready ── */}
+      {ready && (
+        <nav aria-label="Seções do app" className="bg-surface border-b border-line shrink-0">
+          {/* role="tablist" required by ARIA tab pattern */}
+          <div
+            role="tablist"
+            className="flex overflow-x-auto px-4 gap-0.5"
+            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+          >
+            {TABS.map((tab) => (
+              <TabButton
+                key={tab.id}
+                tab={tab}
+                isActive={tab.id === activeTab}
+                onTabChange={onTabChange}
+              />
+            ))}
+          </div>
+        </nav>
+      )}
 
       {/* ── Main content ── */}
       <main className="flex-1 flex flex-col min-h-0">

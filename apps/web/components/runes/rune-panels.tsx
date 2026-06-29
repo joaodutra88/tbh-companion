@@ -62,7 +62,7 @@ export function RunePanels({ rec, onSelect }: RunePanelsProps) {
 
         {almostFree.length > 0 ? (
           <>
-            <p className="mb-1 text-[10px] font-medium uppercase tracking-wider text-dim/60">
+            <p className="mb-1 text-[10px] font-medium uppercase tracking-wider text-dim">
               Mais baratas
             </p>
             <ul className="flex flex-col gap-0.5">
@@ -116,7 +116,7 @@ export function RunePanels({ rec, onSelect }: RunePanelsProps) {
         {roi.length > 0 ? (
           <>
             <p
-              className={`mb-1 text-[10px] font-medium uppercase tracking-wider text-dim/60${almostFree.length > 0 ? " mt-3" : ""}`}
+              className={`mb-1 text-[10px] font-medium uppercase tracking-wider text-dim${almostFree.length > 0 ? " mt-3" : ""}`}
             >
               Melhor custo-benefício (combate)
             </p>
@@ -276,7 +276,7 @@ export function RunePanels({ rec, onSelect }: RunePanelsProps) {
             onClick={() => onSelect(String(firstDpsPath.target))}
             className="mt-2.5 rounded border border-gold/40 bg-gold/10 px-3 py-1 text-[12px] font-medium text-gold transition-colors hover:bg-gold/20"
           >
-            ver na árvore
+            Ver na árvore
           </button>
         </section>
       ) : null}

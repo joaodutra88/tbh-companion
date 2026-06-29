@@ -24,14 +24,11 @@ export function Overview({ rec, db }: OverviewProps) {
         <CoachCard rec={rec} db={db} />
       </div>
 
-      <div className="reveal" style={{ animationDelay: "60ms" }}>
+      <div className="reveal [animation-delay:60ms]">
         <MetaStrip rec={rec} />
       </div>
 
-      <div
-        className="reveal grid grid-cols-1 gap-4 lg:grid-cols-3"
-        style={{ animationDelay: "120ms" }}
-      >
+      <div className="reveal grid grid-cols-1 gap-4 lg:grid-cols-3 [animation-delay:120ms]">
         <div className="lg:col-span-2">
           <Roster rec={rec} db={db} />
         </div>

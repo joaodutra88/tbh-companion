@@ -125,6 +125,8 @@ const RuneNodeEl = React.memo(function RuneNodeEl({
       role={onSelect ? "button" : undefined}
       aria-label={localized(n.name, locale) || `Runa ${nodeKey}`}
     >
+      {/* SVG title — native tooltip + screen-reader name */}
+      <title>{localized(n.name, locale) || `Runa ${nodeKey}`}</title>
       {/* important (combat AD/AS) → glow suave atrás */}
       {n.important ? (
         <circle r={NODE_R + 11} fill="var(--gold)" opacity={0.12} className="rune-glow" />

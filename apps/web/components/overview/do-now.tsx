@@ -13,6 +13,7 @@ import {
   PawPrint,
   Flame,
   CircleDot,
+  Check,
   type LucideIcon,
 } from "lucide-react";
 import type { GameDB, Recommendation } from "@tbh/engine";
@@ -70,7 +71,10 @@ export function DoNow({ rec, db }: DoNowProps) {
       </div>
 
       {actions.length === 0 ? (
-        <p className="py-4 text-center text-[14px] text-dim">—</p>
+        <div className="flex flex-col items-center gap-2 py-4 text-center">
+          <Check className="size-5 text-teal" aria-hidden="true" />
+          <p className="text-[13px] text-dim">Tudo em dia — nenhuma ação prioritária.</p>
+        </div>
       ) : (
         <ul className="flex flex-col gap-0.5">
           {actions.map((a, i) => {

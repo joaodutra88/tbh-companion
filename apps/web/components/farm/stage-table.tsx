@@ -97,8 +97,8 @@ export function StageTable({ rows, currentKey, recommendKey, db }: StageTablePro
         <h2 className="text-[11px] font-semibold uppercase tracking-wider text-dim">
           Stages farmáveis
         </h2>
-        <span className="text-[11px] tabular-nums text-dim/60">{rows.length}</span>
-        <span className="ml-auto hidden text-[11px] text-dim/50 sm:inline">
+        <span className="text-[11px] tabular-nums text-dim">{rows.length}</span>
+        <span className="ml-auto hidden text-[11px] text-dim sm:inline">
           clique no cabeçalho pra ordenar
         </span>
       </div>
@@ -145,6 +145,16 @@ export function StageTable({ rows, currentKey, recommendKey, db }: StageTablePro
             </tr>
           </thead>
           <tbody>
+            {sorted.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={COLS.length}
+                  className="px-3 py-4 text-center text-[13px] text-dim"
+                >
+                  Nenhum stage farmável encontrado.
+                </td>
+              </tr>
+            ) : null}
             {sorted.map((row) => {
               const isRec = row.key === recommendKey;
               const isCur = row.key === currentKey;

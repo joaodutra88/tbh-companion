@@ -127,7 +127,14 @@ export function HeroCard({ hero, level, db, partyDPS, isCarry }: HeroCardProps) 
           <span className="uppercase tracking-wider">DPS share</span>
           <span className="tabular-nums">{Math.round(share * 100)}%</span>
         </div>
-        <div className="h-1.5 w-full overflow-hidden rounded-full bg-line/50">
+        <div
+          role="progressbar"
+          aria-valuenow={Math.round(share * 100)}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label="DPS share"
+          className="h-1.5 w-full overflow-hidden rounded-full bg-line/50"
+        >
           <div
             className="h-full rounded-full bg-teal transition-[width] duration-500"
             style={{ width: `${Math.max(2, Math.min(100, share * 100))}%` }}
@@ -151,7 +158,7 @@ export function HeroCard({ hero, level, db, partyDPS, isCarry }: HeroCardProps) 
           ) : (
             <>
               +{fmtK(expToNext)} XP
-              {eta != null && <span className="text-dim/70"> · {fmtDur(eta)}</span>}
+              {eta != null && <span className="text-dim"> · {fmtDur(eta)}</span>}
             </>
           )}
         </span>

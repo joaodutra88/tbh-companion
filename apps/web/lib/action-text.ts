@@ -47,7 +47,7 @@ function gradeLabel(grade: string): string {
 // ── Mapping ─────────────────────────────────────────────────────────────────
 
 export function actionText(a: Action | null, db: GameDB | null, locale = "en-US"): string {
-  if (!a) return "Tudo otimizado por agora 👌";
+  if (!a) return "Tudo otimizado por agora";
 
   switch (a.k) {
     case "rune_almostfree": {
