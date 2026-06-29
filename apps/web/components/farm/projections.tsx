@@ -38,7 +38,7 @@ export function Projections({ recommend, partyLevel, db }: ProjectionsProps) {
         <h2 className="text-[11px] font-semibold uppercase tracking-wider text-dim">
           Projeções
         </h2>
-        <span className="ml-auto text-[11px] text-dim/60">no stage recomendado</span>
+        <span className="ml-auto text-[11px] text-dim">no stage recomendado</span>
       </div>
 
       <table className="w-full border-collapse text-[13px]">

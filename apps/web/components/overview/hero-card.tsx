@@ -6,6 +6,7 @@ import type { GameDB, HeroStat } from "@tbh/engine";
 import type { LevelInfo } from "@tbh/engine";
 import { fmt, fmtK, fmtDur, heroIcon, heroName } from "@/lib/format";
 import { useEntityLocale } from "@/lib/entity-locale";
+import { TooltipRoot, TooltipTrigger, TooltipPortal, TooltipPositioner, TooltipPopup } from "@/components/ui/tooltip";
 
 // ── HeroSprite ──────────────────────────────────────────────────────────────
 // Portrait with graceful fallback: a missing/broken sprite collapses to the
@@ -109,13 +110,19 @@ export function HeroCard({ hero, level, db, partyDPS, isCarry }: HeroCardProps) 
               {fmt(hero.power)}
             </span>
             {ap > 0 && (
-              <span
-                title="Pontos de habilidade não usados"
-                className="ml-auto inline-flex items-center gap-1 rounded bg-gold/12 px-1.5 py-0.5 text-[10px] font-medium text-gold tabular-nums"
-              >
-                <span className="size-1.5 rounded-full bg-gold" aria-hidden="true" />
-                {ap} AP
-              </span>
+              <TooltipRoot>
+                <TooltipTrigger
+                  render={<span className="ml-auto inline-flex items-center gap-1 rounded bg-gold/12 px-1.5 py-0.5 text-[10px] font-medium text-gold tabular-nums cursor-default" />}
+                >
+                  <span className="size-1.5 rounded-full bg-gold" aria-hidden="true" />
+                  {ap} AP
+                </TooltipTrigger>
+                <TooltipPortal>
+                  <TooltipPositioner side="top">
+                    <TooltipPopup>Pontos de habilidade não usados</TooltipPopup>
+                  </TooltipPositioner>
+                </TooltipPortal>
+              </TooltipRoot>
             )}
           </div>
         </div>
@@ -127,7 +134,14 @@ export function HeroCard({ hero, level, db, partyDPS, isCarry }: HeroCardProps) 
           <span className="uppercase tracking-wider">DPS share</span>
           <span className="tabular-nums">{Math.round(share * 100)}%</span>
         </div>
-        <div className="h-1.5 w-full overflow-hidden rounded-full bg-line/50">
+        <div
+          role="progressbar"
+          aria-valuenow={Math.round(share * 100)}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label="DPS share"
+          className="h-1.5 w-full overflow-hidden rounded-full bg-line/50"
+        >
           <div
             className="h-full rounded-full bg-teal transition-[width] duration-500"
             style={{ width: `${Math.max(2, Math.min(100, share * 100))}%` }}
@@ -151,7 +165,7 @@ export function HeroCard({ hero, level, db, partyDPS, isCarry }: HeroCardProps) 
           ) : (
             <>
               +{fmtK(expToNext)} XP
-              {eta != null && <span className="text-dim/70"> · {fmtDur(eta)}</span>}
+              {eta != null && <span className="text-dim"> · {fmtDur(eta)}</span>}
             </>
           )}
         </span>

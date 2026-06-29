@@ -126,7 +126,7 @@ export function ChestsPane({ rec, db }: ChestsPaneProps) {
           <h2 className="text-[11px] font-semibold uppercase tracking-wider text-dim">
             Janela de drop compartilhada
           </h2>
-          <span className="ml-auto inline-flex items-center gap-1 text-[11px] text-dim/60">
+          <span className="ml-auto inline-flex items-center gap-1 text-[11px] text-dim">
             <Info className="size-3" aria-hidden="true" />
             estimada pelo servidor
           </span>

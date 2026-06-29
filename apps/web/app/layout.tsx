@@ -3,6 +3,7 @@ import { Space_Grotesk, Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { RecommendationProvider } from "@/lib/recommendation-context";
 import { EntityLocaleProvider } from "@/lib/entity-locale";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 const display = Space_Grotesk({
   subsets: ["latin"],
@@ -41,9 +42,11 @@ export default function RootLayout({
       className={`${display.variable} ${body.variable} ${mono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <EntityLocaleProvider>
-          <RecommendationProvider>{children}</RecommendationProvider>
-        </EntityLocaleProvider>
+        <TooltipProvider>
+          <EntityLocaleProvider>
+            <RecommendationProvider>{children}</RecommendationProvider>
+          </EntityLocaleProvider>
+        </TooltipProvider>
       </body>
     </html>
   );

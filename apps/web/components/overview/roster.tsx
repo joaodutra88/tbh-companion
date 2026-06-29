@@ -25,7 +25,7 @@ export function Roster({ rec, db }: RosterProps) {
         <h2 className="text-[11px] font-semibold uppercase tracking-wider text-dim">
           Party
         </h2>
-        <span className="text-[11px] text-dim/60 tabular-nums">
+        <span className="text-[11px] text-dim tabular-nums">
           {heroes.length}
         </span>
       </div>

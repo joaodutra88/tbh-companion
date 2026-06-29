@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { Loader2 } from "lucide-react";
 import { useRecommendation } from "@/lib/recommendation-context";
 
 export function ConnectSave() {
@@ -31,8 +32,11 @@ export function ConnectSave() {
           <button
             onClick={() => void connect()}
             disabled={isLoading}
-            className="w-full py-2.5 px-4 rounded-md bg-gold text-bg font-display font-semibold text-[14px] hover:opacity-90 disabled:opacity-40 transition-opacity"
+            className="w-full py-2.5 px-4 rounded-md bg-gold text-bg font-display font-semibold text-[14px] hover:opacity-90 disabled:opacity-40 transition-opacity inline-flex items-center justify-center gap-2"
           >
+            {isLoading && (
+              <Loader2 className="animate-spin size-4 shrink-0" aria-hidden="true" />
+            )}
             {isLoading ? "Carregando..." : "Conectar save"}
           </button>
 
@@ -56,7 +60,7 @@ export function ConnectSave() {
           >
             Live-watch
             {!supportsLiveWatch && (
-              <span className="ml-2 text-[11px] text-dim/60">(Chrome/Edge)</span>
+              <span className="ml-2 text-[11px] text-dim">(Chrome/Edge)</span>
             )}
           </button>
         </div>
@@ -66,14 +70,14 @@ export function ConnectSave() {
           <p className="text-[12px] text-dim font-mono leading-relaxed">
             SaveFile_Live.es3
           </p>
-          <p className="text-[11px] text-dim/60 font-body mt-0.5">
+          <p className="text-[11px] text-dim font-body mt-0.5">
             AppData\LocalLow\TesseractStudio\TaskbarHero
           </p>
         </div>
 
         {/* Error message */}
         {error && (
-          <div className="rounded px-3 py-2.5 bg-coral/10 border border-coral/30">
+          <div role="alert" className="rounded px-3 py-2.5 bg-coral/10 border border-coral/30">
             <p className="text-[13px] text-coral font-body leading-snug">{error}</p>
           </div>
         )}

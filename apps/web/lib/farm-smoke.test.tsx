@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { render, screen, cleanup } from "@testing-library/react";
+import { render, screen, cleanup, fireEvent, waitFor } from "@testing-library/react";
 import React from "react";
 import { getDemoSaveText, loadGameDB } from "@tbh/game-data";
 import type { FarmRow, GameDB, Recommendation } from "@tbh/engine";
@@ -39,6 +39,40 @@ describe("FarmPane (smoke)", () => {
     const db: GameDB = await loadGameDB();
     render(<FarmPane rec={rec} db={db} recalibrate={vi.fn()} />);
     expect(screen.getByRole("button", { name: /Calibrar/i })).toBeTruthy();
+  });
+
+  it("StageTable: linhas sem destaque têm classe de zebra (odd:bg-surface-2/30)", async () => {
+    const rec: Recommendation = await runRecommend(getDemoSaveText());
+    const db: GameDB = await loadGameDB();
+    const { container } = render(<FarmPane rec={rec} db={db} recalibrate={vi.fn()} />);
+
+    const tbody = container.querySelector("tbody");
+    expect(tbody).not.toBeNull();
+
+    // Rows that are neither "melhor" (gold bg) nor "atual" (teal bg) must carry the zebra class.
+    const plainRows = Array.from(tbody!.querySelectorAll("tr")).filter(
+      (tr) => !tr.className.includes("bg-gold") && !tr.className.includes("bg-teal"),
+    );
+    expect(plainRows.length).toBeGreaterThan(0);
+    expect(plainRows[0]!.className).toContain("odd:bg-surface-2/30");
+  });
+
+  it("Calibration: exibe 'Calibrado!' após calibrar com sucesso", async () => {
+    const rec: Recommendation = await runRecommend(getDemoSaveText());
+    const db: GameDB = await loadGameDB();
+    const mockRecalibrate = vi.fn().mockResolvedValue(undefined);
+
+    render(<FarmPane rec={rec} db={db} recalibrate={mockRecalibrate} />);
+
+    // Fill the primary clear-time input (placeholder "seg")
+    const inputs = screen.getAllByPlaceholderText("seg");
+    fireEvent.change(inputs[0]!, { target: { value: "30" } });
+
+    // Click Calibrar and wait for the async state update
+    fireEvent.click(screen.getByRole("button", { name: /^Calibrar$/ }));
+    await waitFor(() => {
+      expect(screen.getByText("Calibrado!")).toBeTruthy();
+    });
   });
 
   it("shows 'Deixa rolando' highlight with farm.recommend stage name; shows 'Estaciona offline' when bestPark exists", async () => {

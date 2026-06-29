@@ -87,9 +87,9 @@ export function RunesPane({ rec }: RunesPaneProps) {
         <div>
           <div className="flex items-center gap-2">
             <Sparkles className="size-4 text-gold" aria-hidden="true" />
-            <h1 className="font-display text-[20px] font-semibold tracking-[-0.01em] text-text">
+            <h2 className="font-display text-[20px] font-semibold tracking-[-0.01em] text-text">
               Árvore de runas
-            </h1>
+            </h2>
           </div>
           <p className="mt-0.5 text-[12px] text-dim tabular-nums">
             {nodeCount} nós · arraste pra mover, scroll ou + / − pra dar zoom
@@ -159,7 +159,7 @@ export function RunesPane({ rec }: RunesPaneProps) {
             onClick={() => setSelectedKey(String(bestRune.key))}
             className="relative mt-3 rounded border border-gold/40 bg-gold/10 px-3 py-1 text-[12px] font-medium text-gold transition-colors hover:bg-gold/20"
           >
-            ver na árvore
+            Ver na árvore
           </button>
         </section>
       ) : null}
@@ -178,7 +178,15 @@ export function RunesPane({ rec }: RunesPaneProps) {
       />
 
       {/* Árvore + painel lateral (detalhe + recomendadas + plano de gasto) */}
-      <div className="flex flex-col gap-3 md:flex-row md:items-start">
+      <div className="relative flex flex-col gap-3 md:flex-row md:items-start">
+        {/* Skip-link para usuários de teclado pularem a árvore de 197 nós */}
+        <a
+          href="#rune-side-panel"
+          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:border focus:border-teal/60 focus:bg-surface focus:px-3 focus:py-1.5 focus:text-[13px] focus:text-teal focus:shadow-sm"
+        >
+          Pular a árvore de runas
+        </a>
+
         {/* Árvore — ocupa o espaço restante */}
         <div className="relative min-h-[440px] flex-1">
           <RuneTree
@@ -195,7 +203,7 @@ export function RunesPane({ rec }: RunesPaneProps) {
         </div>
 
         {/* Painel lateral: detalhe do nó + recomendadas + plano de gasto */}
-        <div className="flex w-full flex-col gap-3 md:w-80">
+        <div id="rune-side-panel" className="flex w-full flex-col gap-3 md:w-80">
           <RuneDetail node={selected} />
           <RunePanels rec={rec} onSelect={setSelectedKey} />
         </div>

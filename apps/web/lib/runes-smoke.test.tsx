@@ -121,6 +121,29 @@ describe("RunesPane (smoke)", () => {
     }
   });
 
+  it("nó acionável (recommended/almostfree/owned) tem tabIndex=0 e Enter o seleciona", async () => {
+    const rec = await demoRec();
+    const { container } = render(<RunesPane rec={rec} />);
+
+    // Find a node with an actionable status
+    const entry = Object.entries(rec.runeTree.nodes).find(([, n]) =>
+      ["recommended", "almostfree", "owned"].includes(n.status),
+    );
+    expect(entry).toBeDefined();
+    const [key] = entry!;
+
+    const nodeEl = container.querySelector(`g.rune-node[data-key="${key}"]`);
+    expect(nodeEl).not.toBeNull();
+
+    // Must be keyboard-focusable
+    expect(nodeEl!.getAttribute("tabindex")).toBe("0");
+
+    // Enter must select the node (the hint text disappears, detail panel takes over)
+    expect(container.textContent).toContain("Clique num nó da árvore");
+    fireEvent.keyDown(nodeEl!, { key: "Enter" });
+    expect(container.textContent).not.toContain("Clique num nó da árvore");
+  });
+
   it("botão 'ver na árvore' do card chama setSelectedKey", async () => {
     const rec = await demoRec();
     const bestRune =
@@ -199,7 +222,7 @@ describe("RunePanels (smoke)", () => {
     const onSelect = vi.fn();
     const { getByRole } = render(<RunePanels rec={rec} onSelect={onSelect} />);
 
-    const btn = getByRole("button", { name: /ver na árvore/ });
+    const btn = getByRole("button", { name: /ver na árvore/i });
     fireEvent.click(btn);
     expect(onSelect).toHaveBeenCalledOnce();
     expect(onSelect.mock.calls[0][0]).toBe(

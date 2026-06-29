@@ -85,7 +85,7 @@ export default function Home() {
   const [tab, setTab] = useState("overview");
 
   return (
-    <AppShell statusSlot={<StatusSlot />} activeTab={tab} onTabChange={setTab}>
+    <AppShell statusSlot={<StatusSlot />} activeTab={tab} onTabChange={setTab} ready={status === "ready"}>
       {status === "ready" && rec ? (
         <ActivePane tab={tab} rec={rec} db={db} recalibrate={recalibrate} />
       ) : (

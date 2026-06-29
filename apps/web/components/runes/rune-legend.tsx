@@ -116,7 +116,7 @@ export function RuneLegend({
             <span className="text-[11px] text-dim">
               {RUNE_STATUS_LABEL[status]}
               {statusCounts[status] ? (
-                <span className="ml-1 tabular-nums text-dim/60">
+                <span className="ml-1 tabular-nums text-dim">
                   {statusCounts[status]}
                 </span>
               ) : null}
@@ -157,6 +157,7 @@ export function RuneLegend({
           value={Math.min(budget, maxBudget)}
           onChange={onSlider}
           aria-label="Orçamento em gold"
+          aria-valuetext={`até ${fmt(Math.min(budget, maxBudget))} gold`}
           className="h-1.5 w-full max-w-xs cursor-pointer accent-gold"
         />
         <span className="shrink-0 text-[13px] font-semibold tabular-nums text-gold">

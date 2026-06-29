@@ -77,7 +77,7 @@ export function CoachCard({ rec, db }: CoachCardProps) {
 
           {hasCoach && carry != null && (
             <p className="mt-2.5 text-[12px] font-body text-dim">
-              <span className="text-dim/70">Carry:</span>{" "}
+              <span className="text-dim">Carry:</span>{" "}
               <span className="text-text">{heroName(carry, db, locale)}</span>
               {carryShare != null && (
                 <>

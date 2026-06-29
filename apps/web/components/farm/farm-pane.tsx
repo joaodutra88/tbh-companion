@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Crosshair, Check, Info, Anchor } from "lucide-react";
+import { Crosshair, Check, Info, Anchor, RefreshCw, Moon } from "lucide-react";
 import type { FarmRow, GameDB, ParkStage, Recommendation, RecommendOpts } from "@tbh/engine";
 import { fmtPerHour, fmtDur } from "@/lib/format";
 import { StageName } from "@/components/stage-name";
@@ -163,14 +163,14 @@ function AutoFarmHighlights({ recommend, bestPark, db }: AutoFarmHighlightsProps
     : null;
 
   return (
-    <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-      {/* 🔄 Deixa rolando aqui — melhor stage pra auto-clear ativo */}
+    <div className={bestPark ? "grid grid-cols-1 gap-3 md:grid-cols-2" : "block"}>
+      {/* Deixa rolando aqui — melhor stage pra auto-clear ativo */}
       <section
         aria-label="Deixa rolando — auto-farm"
         className="rounded-lg border border-gold/30 bg-surface p-4"
       >
         <div className="mb-2 flex items-center gap-1.5">
-          <span aria-hidden="true" className="text-[14px] leading-none">🔄</span>
+          <RefreshCw className="size-3.5 text-gold" aria-hidden="true" />
           <span className="text-[11px] font-semibold uppercase tracking-[0.15em] text-gold">
             Deixa rolando aqui
           </span>
@@ -196,14 +196,14 @@ function AutoFarmHighlights({ recommend, bestPark, db }: AutoFarmHighlightsProps
         </p>
       </section>
 
-      {/* 💤 Estaciona offline aqui — só renderiza quando bestPark existe */}
+      {/* Estaciona offline aqui — só renderiza quando bestPark existe */}
       {bestPark && (
         <section
           aria-label="Estaciona offline aqui"
           className="rounded-lg border border-line bg-surface p-4"
         >
           <div className="mb-2 flex items-center gap-1.5">
-            <span aria-hidden="true" className="text-[14px] leading-none">💤</span>
+            <Moon className="size-3.5 text-dim" aria-hidden="true" />
             <span className="text-[11px] font-semibold uppercase tracking-[0.15em] text-dim">
               Estaciona offline aqui
             </span>
@@ -254,7 +254,7 @@ export function FarmPane({ rec, db, recalibrate }: FarmPaneProps) {
             />
           </div>
 
-          <div className="reveal" style={{ animationDelay: "30ms" }}>
+          <div className="reveal [animation-delay:30ms]">
             <RecommendedCard
               recommend={recommend}
               onBest={farm.onBest}
@@ -265,10 +265,7 @@ export function FarmPane({ rec, db, recalibrate }: FarmPaneProps) {
             />
           </div>
 
-          <div
-            className="reveal grid grid-cols-1 gap-4 lg:grid-cols-3"
-            style={{ animationDelay: "60ms" }}
-          >
+          <div className="reveal grid grid-cols-1 gap-4 lg:grid-cols-3 [animation-delay:60ms]">
             <div className="lg:col-span-2">
               <StageTable
                 rows={farm.all}
@@ -292,7 +289,7 @@ export function FarmPane({ rec, db, recalibrate }: FarmPaneProps) {
             </div>
           </div>
 
-          <div className="reveal" style={{ animationDelay: "120ms" }}>
+          <div className="reveal [animation-delay:120ms]">
             <IdleSection idle={idle} db={db} />
           </div>
         </>
