@@ -162,6 +162,8 @@
 .rune-node:hover > circle:last-child {
   filter: brightness(1.35) drop-shadow(0 0 4px rgba(232, 176, 75, 0.45));
 }
+.rune-node:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; border-radius: 4px; }
+.rune-node:focus:not(:focus-visible) { outline: none; }
 
 /* ── Overview load reveal (staggered via inline animation-delay) ──
    Base state is visible; the keyframe drives the entrance. With

@@ -178,7 +178,7 @@ export function RunesPane({ rec }: RunesPaneProps) {
       />
 
       {/* Árvore + painel lateral (detalhe + recomendadas + plano de gasto) */}
-      <div className="flex flex-col gap-3 md:flex-row md:items-start">
+      <div className="relative flex flex-col gap-3 md:flex-row md:items-start">
         {/* Skip-link para usuários de teclado pularem a árvore de 197 nós */}
         <a
           href="#rune-side-panel"
