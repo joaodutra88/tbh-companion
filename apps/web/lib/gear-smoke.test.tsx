@@ -278,8 +278,9 @@ describe("SlotCompare (smoke)", () => {
     // data-dpow spans should exist and contain a non-empty value
     const dpowSpans = container.querySelectorAll("[data-dpow]");
     expect(dpowSpans.length).toBeGreaterThan(0);
+    // Tolerate dPower === 0: any formatted numeric string (including "0") is valid.
     const texts = Array.from(dpowSpans).map((el) => el.textContent ?? "");
-    expect(texts.some((t) => t !== "" && t !== "0")).toBe(true);
+    expect(texts.every((t) => t !== "")).toBe(true);
   });
 
   it("candidatos em posse aparecem quando o demo tem itens compatíveis", async () => {

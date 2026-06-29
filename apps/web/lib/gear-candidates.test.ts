@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { getDemoSaveText, loadGameDB } from "@tbh/game-data";
-import { parseSave, heroSaveMap, itemSaveMap, party } from "@tbh/engine";
+import { parseSave, heroSaveMap, itemSaveMap, party, slotGearType } from "@tbh/engine";
 import type { GameDB, PlayerSaveData } from "@tbh/engine";
 import { scoreOwnedCandidates } from "./gear-candidates";
 
@@ -62,6 +62,38 @@ describe("scoreOwnedCandidates", () => {
     for (const c of result) {
       const idb = db.items[c.itemKey];
       expect(idb?.gt).toBe("HELMET");
+    }
+  });
+
+  it("slot 0 (arma): cada candidato tem o gearType de arma principal do herói", async () => {
+    const { db, psd } = await demoSetup();
+    const hsm = heroSaveMap(psd);
+    const firstHk = party(psd)[0]!;
+    const heroSave = hsm[firstHk];
+
+    const weaponGt = slotGearType(db, firstHk, 0);
+    // Se o herói não tiver mainW definido no DB, o test não se aplica
+    if (!weaponGt) return;
+
+    const result = scoreOwnedCandidates(db, psd, heroSave, 0, weaponGt);
+    // Se o demo não tiver nenhum item do tipo, esperamos array vazio — ainda é um guard válido
+    expect(Array.isArray(result)).toBe(true);
+    for (const c of result) {
+      expect(db.items[c.itemKey]?.gt).toBe(weaponGt);
+    }
+  });
+
+  it("slot 6 (AMULET/joia): cada candidato tem gearType 'AMULET'", async () => {
+    const { db, psd } = await demoSetup();
+    const hsm = heroSaveMap(psd);
+    const firstHk = party(psd)[0]!;
+    const heroSave = hsm[firstHk];
+
+    const result = scoreOwnedCandidates(db, psd, heroSave, 6, "AMULET");
+    // Se o demo não tiver amuletos em posse, resultado é [] — ainda válido
+    expect(Array.isArray(result)).toBe(true);
+    for (const c of result) {
+      expect(db.items[c.itemKey]?.gt).toBe("AMULET");
     }
   });
 

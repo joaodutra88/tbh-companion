@@ -52,7 +52,18 @@ export function SlotCompare({
       slotResult.gearType,
     );
 
-    return { hs, bestDelta, candidates, curUid };
+    // Identify exactly the first non-equipped copy of the best item so only one
+    // row gets the MELHOR pill (duplicates of the same itemKey are excluded).
+    const best = slotResult.best;
+    const bestCandidate =
+      best != null
+        ? candidates.find(
+            (c) => String(c.itemKey) === String(best.itemKey) && c.uniqueId !== curUid,
+          )
+        : undefined;
+    const bestUid: number | string | null = bestCandidate?.uniqueId ?? null;
+
+    return { hs, bestDelta, candidates, curUid, bestUid };
   }, [db, psd, heroKey, slotResult]);
 
   const isRecommendedSwap = rec.gear.swaps.some(
@@ -129,10 +140,7 @@ export function SlotCompare({
           <div className="flex flex-col gap-1.5">
             {computed.candidates.map((c) => {
               const isEquipped = c.uniqueId === computed.curUid;
-              const isBest =
-                slotResult.best != null &&
-                String(c.itemKey) === String(slotResult.best.itemKey) &&
-                !isEquipped;
+              const isBest = computed.bestUid != null && c.uniqueId === computed.bestUid;
               const dpow = formatDelta(c.delta.dPower);
 
               return (
