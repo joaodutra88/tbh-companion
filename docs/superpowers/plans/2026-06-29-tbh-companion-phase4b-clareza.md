@@ -2,7 +2,7 @@
 
 > REQUIRED SUB-SKILL: superpowers:subagent-driven-development. War-table design (frontend-design). Checkbox steps.
 
-**Goal:** Fechar o gap de clareza nas abas vivas: (1) dificuldade visível em todo lugar, (2) ícones de runa no nó, (3) recomendação de runa liderando, (4) `statLabel()` PT-BR. **Sem mudar a lógica/saída numérica do engine** — só reexpor `icon` (aditivo) + UI.
+**Goal:** Fechar o gap de clareza nas abas vivas: (1) dificuldade visível em todo lugar, (2) ícones de runa no nó, (3) recomendação de runa liderando, (4) `statLabel()` em inglês. **Sem mudar a lógica/saída numérica do engine** — só reexpor `icon` (aditivo) + UI.
 
 ## Global Constraints
 Node 20; TS strict, zero `any`; war-table utilities (sem inline var() exceto valores dinâmicos: x/y, transform, href); PT-BR; mono nos números; save client-only. **Oráculo do engine (106 asserts) tem que continuar verde.** Não quebrar Fases 1-4b-i. Imagens de runa já vendorizadas em `apps/web/public/game/runes/` (39 PNGs). Verificação ao vivo limitada (extensão estala no gamedata) → tests + read_page, não screenshot.
@@ -38,14 +38,14 @@ Node 20; TS strict, zero `any`; war-table utilities (sem inline var() exceto val
 
 ### Task 3: Runas — recomendação liderando + statLabel + ícones nos painéis
 **Files:** `apps/web/lib/stat-labels.ts`(+test), `apps/web/components/runes/{runes-pane,rune-panels,rune-detail}.tsx`.
-**Interfaces:** `statLabel(key: string): string` PT-BR (fallback = a própria key). Card "Próxima runa recomendada" no topo do RunesPane. Ícones (de `rec.runeTree.nodes[key].icon`) nas listas/detalhe.
+**Interfaces:** `statLabel(key: string): string` em inglês (fallback = humanizar a key, nunca a key crua). Card "Próxima runa recomendada" no topo do RunesPane. Ícones (de `rec.runeTree.nodes[key].icon`) nas listas/detalhe.
 
 - [ ] **Step 1:** `lib/stat-labels.ts` — `statLabel(key)` retorna rótulo legível em **INGLÊS** (consistente com a decisão de nomes do jogo em inglês — ver Task 4). Mapa conciso pras stat keys de runa (enumere os `st` distintos de `db.runeLevels`), ex. `AllHeroAttackDamage`→"All Hero Attack Damage", `MaxAmountActBossChest`→"Act Boss Chest Max Capacity", `MaxInventorySlot`→"Max Inventory Slot", `IncreaseGoldAmount`→"Gold Gain". **Fallback = humanizar o camelCase** (inserir espaço antes de cada maiúscula, ex. `OfflineRewardGoldPercent`→"Offline Reward Gold Percent") — NUNCA exibir a key camelCase crua. Puro, unit-test (algumas keys mapeadas + fallback humanizado). (`db.statStrings` NÃO existe no nosso GameDB — confirmado; por isso mapa+humanize.)
 - [ ] **Step 2:** usar `statLabel()` onde hoje mostra `st` cru: `rune-detail.tsx` (campo "Efeito") e `rune-panels.tsx` (a coluna de stat das "mais baratas").
 - [ ] **Step 3:** ícones nos painéis — em `rune-panels.tsx` (listas recomendadas/cart) e `rune-detail.tsx`, mostrar o ícone da runa (`rec.runeTree.nodes[String(key)]?.icon`, `<img>` pequeno com onError→some). Sem quebrar layout/truncate.
 - [ ] **Step 3b: dedupe/distinção** — runas recomendadas com **nome idêntico** spamam a lista (confirmado no dado: ex. "Rune of Expansion" ×6, todas = `MaxInventorySlot`). Nas listas (almostFree/ROI/cart), **deduplicar entradas de (nome + efeito) idênticos** — mostrar uma só (a mais barata/representativa; opcional sufixo "×N"). Quando o efeito difere, o `statLabel` ao lado já distingue, então não dedupe nesse caso. O card lead (Step 4) mostra só a melhor, sem spam. Não alterar o engine — dedupe é display-only no componente.
 - [ ] **Step 4:** `runes-pane.tsx` — card **"Próxima runa recomendada"** largo no topo (acima da árvore/legenda): escolhe a melhor compra agora — prioridade `goldPlan.cart[0]` → top `runeROI[0]` (combate) → `almostFree[0]`. Mostra ícone + nome (localized) + efeito (statLabel) + custo + ΔPOWER + botão "ver na árvore" (`setSelectedKey`). Estilo no padrão do CoachCard (gold-accent, war-table). Some se não houver recomendação.
-- [ ] **Step 5: smoke** (jsdom): `statLabel` mapeia; o card "Próxima runa recomendada" renderiza nome+custo com o demo. `pnpm -F web test` + typecheck + build. **Commit** `feat(web): runas — card "próxima runa", statLabel PT-BR e ícones nos painéis`.
+- [ ] **Step 5: smoke** (jsdom): `statLabel` mapeia; o card "Próxima runa recomendada" renderiza nome+custo com o demo. `pnpm -F web test` + typecheck + build. **Commit** `feat(web): runas — card "próxima runa", statLabel (inglês) e ícones nos painéis`.
 
 ### Task 4: Nomes do jogo locale-aware (inglês por padrão + seletor)
 **Files:** `apps/web/lib/format.ts` (localized), um contexto/estado de locale de entidade (ex. `apps/web/lib/entity-locale.tsx` ou no `recommendation-context`), um seletor no shell (`apps/web/components/app-shell.tsx` ou um componente novo), e os call sites de nomes (heroName/rune/item/stage).

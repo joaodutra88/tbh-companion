@@ -12,7 +12,7 @@ Ou o dado foi derrubado no port (ícones de runa, dificuldade), ou a resposta ac
 1. **Dificuldade visível em todo lugar** — o jogo tem 4 dificuldades (NORMAL, NIGHTMARE, HELL, TORMENT; 27 fases cada → cada label, ex. "3-9", se repete 4×). `db.stages[k].diff` e `FarmRow.diff` já carregam o dado, mas **nenhuma tela mostra**. Surfacing em: card recomendado, "deixa rolando"/"estaciona offline", tabela de stages, **os dois seletores da calibração** (primário + 2º), e Baús "melhor stage". Grave porque escolher a "3-9" errada na calibração injeta HP/waves errados → calibra com lixo.
 2. **Runas — ícones** — 43→39 PNGs já vendorizados em `apps/web/public/game/runes/`; cada nó já tem `icon` no `gamedata.json` (`runeNodes[k].icon = "/game/runes/<statKey>.png"`), mas a tipagem (`types.ts:50` = `{x,y,cat}`) e o `runeTreeStatus()` (`runes.ts`) largaram o campo. Reexpor + desenhar no nó (imagem clipada no círculo + anel de status por cima, igual o copilot original).
 3. **Runas — clareza** — a resposta "qual runa comprar" já existe no `RunePanels` mas fica num cantinho `w-80` ao lado da árvore-canhão. Adicionar um **card largo no topo "Próxima runa recomendada"** (a melhor compra agora) + ícones nas listas/detalhe.
-4. **`statLabel()` PT-BR** — `st` cru (ex. `AllHeroAttackDamage`) vira "Dano de ataque de todos os heróis". Usado em rune-detail + rune-panels (e reservado pro Gear).
+4. **`statLabel()` em inglês** — `st` cru (ex. `AllHeroAttackDamage`) vira "All Hero Attack Damage" (consistente com nomes do jogo em inglês — ver decisão da Task 4). Usado em rune-detail + rune-panels (e reservado pro Gear).
 
 **Não-objetivos:** Gear (4b-ii, vem depois); mudar a lógica/saída numérica do engine (só ADITIVO: reexpor `icon`); mexer em Overview/Baús além do `<StageName>`.
 
@@ -32,7 +32,7 @@ Ou o dado foi derrubado no port (ícones de runa, dificuldade), ou a resposta ac
 ```
 apps/web/lib/stage-format.ts      # DIFF_LABEL/DIFF_ORDER/DIFF_TONE + stageOptionText() (puro, testável)
 apps/web/components/stage-name.tsx # <StageName> (selo dificuldade + label + nv) + variante compacta
-apps/web/lib/stat-labels.ts       # statLabel(key): PT-BR (puro, testável)
+apps/web/lib/stat-labels.ts       # statLabel(key): inglês (puro, testável)
 packages/engine/src/types.ts      # runeNodes ganha icon?: string ; RuneTreeNode ganha icon?: string
 packages/engine/src/runes.ts      # runeTreeStatus(): base node passa icon: pos.icon
 apps/web/components/runes/rune-tree.tsx     # <image> no nó
@@ -50,7 +50,7 @@ apps/web/components/chests/chests-pane.tsx  # <StageName> no "melhor stage"
 ## Critérios de sucesso
 - [ ] Toda fase nomeada no app mostra a dificuldade (cards Farm, tabela, **ambos seletores da calibração**, Baús).
 - [ ] Nós da árvore de runas mostram o ícone da runa (fallback gracioso); recomendação "qual comprar" lidera a aba.
-- [ ] Stat keys aparecem em PT-BR legível.
+- [ ] Stat keys aparecem em inglês legível.
 - [ ] `pnpm -F web test` + engine oráculo + typecheck + build + CI verdes; zero `any`; war-table.
 
 ## Riscos
