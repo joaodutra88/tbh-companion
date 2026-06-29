@@ -122,7 +122,7 @@ describe("A11y + quick-win (smoke)", () => {
         <div>content</div>
       </AppShell>,
     );
-    // "Gear", "Loja", "Vender", "Histórico" are disabled.
+    // "Loja", "Vender", "Histórico" are disabled ("Gear" was enabled in Task 2).
     // Base UI Tabs.Tab exposes disabled state via aria-disabled="true" on the composite item
     // (not the native HTML disabled attribute, so keyboard focus/navigation still works).
     const disabledTabs = screen
@@ -132,7 +132,7 @@ describe("A11y + quick-win (smoke)", () => {
           el.getAttribute("aria-disabled") === "true" ||
           el.hasAttribute("disabled"),
       );
-    expect(disabledTabs.length).toBe(4);
+    expect(disabledTabs.length).toBe(3);
   });
 
   it("ConnectSave: CTA mostra spinner (.animate-spin) enquanto status=loading", () => {

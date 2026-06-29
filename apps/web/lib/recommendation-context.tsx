@@ -9,7 +9,8 @@ import React, {
   useState,
   type ReactNode,
 } from "react";
-import type { Recommendation, GameDB, RecommendOpts } from "@tbh/engine";
+import type { Recommendation, GameDB, RecommendOpts, PlayerSaveData } from "@tbh/engine";
+import { parseSave } from "@tbh/engine";
 import { loadGameDB } from "@tbh/game-data";
 import { connectViaPicker, watchSaveFile, loadDemoText } from "@/lib/save";
 import { runRecommend, measureSave } from "@/lib/engine-bridge";
@@ -23,6 +24,8 @@ export interface RecommendationState {
   error: string | null;
   /** Game DB — loaded alongside rec; needed by Task 3 components for hero name/icon. */
   db: GameDB | null;
+  /** Parsed player save data — exposed for the slot comparator (Task 3). */
+  psd: PlayerSaveData | null;
   connect(): Promise<void>;
   watch(): Promise<void>;
   demo(): Promise<void>;
@@ -39,6 +42,7 @@ interface DataState {
   rec: Recommendation | null;
   error: string | null;
   db: GameDB | null;
+  psd: PlayerSaveData | null;
 }
 
 const IDLE: DataState = {
@@ -47,6 +51,7 @@ const IDLE: DataState = {
   rec: null,
   error: null,
   db: null,
+  psd: null,
 };
 
 // ── Context ───────────────────────────────────────────────────────────────────
@@ -81,9 +86,11 @@ export function RecommendationProvider({ children }: { children: ReactNode }) {
     try {
       const text = loadDemoText();
       saveTextRef.current = text;
+      let psd: PlayerSaveData | null = null;
+      try { psd = parseSave(text); } catch { /* invalid JSON in test env */ }
       const rec = await runRecommend(text);
       const db = await loadGameDB();
-      setState({ status: "ready", source: "demo", rec, db, error: null });
+      setState({ status: "ready", source: "demo", rec, db, psd, error: null });
     } catch {
       setState({
         ...IDLE,
@@ -102,9 +109,11 @@ export function RecommendationProvider({ children }: { children: ReactNode }) {
     try {
       const text = await connectViaPicker();
       saveTextRef.current = text;
+      let psd: PlayerSaveData | null = null;
+      try { psd = parseSave(text); } catch { /* corrupt save */ }
       const rec = await runRecommend(text);
       const db = await loadGameDB();
-      setState({ status: "ready", source: "file", rec, db, error: null });
+      setState({ status: "ready", source: "file", rec, db, psd, error: null });
     } catch (e) {
       // Picker cancelado → volta silenciosamente ao idle
       if (
@@ -152,6 +161,8 @@ export function RecommendationProvider({ children }: { children: ReactNode }) {
             stageKey: m.stageKey,
             atMs: now,
           };
+          let psd: PlayerSaveData | null = null;
+          try { psd = parseSave(text); } catch { /* corrupt save */ }
           const rec = await runRecommend(text, {
             ...autoOptsRef.current,
             ...(optsRef.current ?? {}),
@@ -163,6 +174,7 @@ export function RecommendationProvider({ children }: { children: ReactNode }) {
             source: "live",
             rec,
             db,
+            psd,
             error: null,
           }));
         } catch (err) {
