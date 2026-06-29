@@ -53,7 +53,7 @@ export function RuneDetail({ node }: RuneDetailProps) {
           className="size-3.5 shrink-0 text-dim"
           aria-hidden="true"
         />
-        Passe o mouse ou clique num nó da árvore.
+        Clique num nó da árvore.
       </div>
     );
   }
