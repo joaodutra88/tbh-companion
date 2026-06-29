@@ -47,7 +47,7 @@ function isValidLocale(v: string): v is GameLocaleCode {
 // ── Context ──────────────────────────────────────────────────────────────────
 
 export interface EntityLocaleState {
-  locale: string;
+  locale: GameLocaleCode;
   setLocale: (locale: string) => void;
 }
 
@@ -62,7 +62,7 @@ const EntityLocaleContext = createContext<EntityLocaleState>({
 
 export function EntityLocaleProvider({ children }: { children: ReactNode }) {
   // Start with the stable default so server render and first client render match.
-  const [locale, setLocaleState] = useState<string>(DEFAULT_LOCALE);
+  const [locale, setLocaleState] = useState<GameLocaleCode>(DEFAULT_LOCALE);
 
   // After mount, read the user's stored preference (if any).
   useEffect(() => {

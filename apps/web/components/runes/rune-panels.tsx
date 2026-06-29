@@ -213,7 +213,7 @@ export function RunePanels({ rec, onSelect }: RunePanelsProps) {
                       />
                     ) : null}
                     <span className="flex-1 truncate text-[13px] text-text">
-                      {localized(r.name) || `Runa ${r.key}`}
+                      {localized(r.name, locale) || `Runa ${r.key}`}
                       {r.count > 1 ? (
                         <span className="ml-1 text-[11px] text-dim">
                           ×{r.count}
