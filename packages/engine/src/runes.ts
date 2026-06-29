@@ -163,6 +163,7 @@ interface RuneTreeNode {
   x: number;
   y: number;
   cat: string;
+  icon?: string;
   level: number;
   status: string;
   max: number;
@@ -188,7 +189,7 @@ export function runeTreeStatus(db: GameDB, psd: PlayerSaveData, goldPerSec?: num
   const nodes: Record<string, RuneTreeNode> = {};
   for (const [key, pos] of Object.entries(db.runeNodes)) {
     const rd = db.runes[key];
-    const base = { x: pos.x, y: pos.y, cat: pos.cat, level: owned[key] || 0 };
+    const base = { x: pos.x, y: pos.y, cat: pos.cat, icon: pos.icon, level: owned[key] || 0 };
     if (!rd) {
       nodes[key] = { ...base, status: "available", max: 1 };
       continue;

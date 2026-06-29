@@ -4,6 +4,9 @@ import React from "react";
 import { ShoppingCart, Route } from "lucide-react";
 import type { Recommendation } from "@tbh/engine";
 import { fmt, fmtK, localized } from "@/lib/format";
+import { useEntityLocale } from "@/lib/entity-locale";
+import { statLabel } from "@/lib/stat-labels";
+import { dedupeByNameAndSt } from "@/lib/rune-dedupe";
 
 // ── RunePanels ────────────────────────────────────────────────────────────────
 // Painéis laterais da aba Runas:
@@ -25,10 +28,13 @@ interface RunePanelsProps {
 const MAX_ALMOST_FREE = 8;
 const MAX_ROI = 6;
 
+
 export function RunePanels({ rec, onSelect }: RunePanelsProps) {
-  const almostFree = rec.runes.almostFree.slice(0, MAX_ALMOST_FREE);
-  const roi = rec.runeROI.slice(0, MAX_ROI);
-  const { cart, totalCost, totalPower, gold } = rec.goldPlan;
+  const { locale } = useEntityLocale();
+  const almostFree = dedupeByNameAndSt(rec.runes.almostFree).slice(0, MAX_ALMOST_FREE);
+  const roi = dedupeByNameAndSt(rec.runeROI).slice(0, MAX_ROI);
+  const { totalCost, totalPower, gold } = rec.goldPlan;
+  const cart = dedupeByNameAndSt(rec.goldPlan.cart);
   const firstDpsPath = rec.runes.firstDpsPath;
 
   // Nome do alvo do caminho de DPS: do nó da árvore (mais completo) ou do
@@ -39,6 +45,7 @@ export function RunePanels({ rec, onSelect }: RunePanelsProps) {
           (firstDpsPath.steps.length > 0
             ? firstDpsPath.steps[firstDpsPath.steps.length - 1]!.name
             : String(firstDpsPath.target)),
+        locale,
       )
     : "";
 
@@ -59,28 +66,49 @@ export function RunePanels({ rec, onSelect }: RunePanelsProps) {
               Mais baratas
             </p>
             <ul className="flex flex-col gap-0.5">
-              {almostFree.map((r) => (
-                <li key={`af-${r.key}`}>
-                  <button
-                    type="button"
-                    onClick={() => onSelect(String(r.key))}
-                    className="group flex w-full items-center gap-2 rounded px-1.5 py-1 text-left transition-colors hover:bg-surface-2"
-                  >
-                    <span className="flex-1 truncate text-[13px] text-text group-hover:text-gold">
-                      {localized(r.name) || `Runa ${r.key}`}
-                    </span>
-                    <span className="shrink-0 text-[12px] tabular-nums text-gold">
-                      {fmt(r.cost)}
-                    </span>
-                    {r.st ? (
-                      <span className="shrink-0 text-[11px] tabular-nums text-dim">
-                        {r.st}
-                        {r.value != null ? ` +${fmtK(r.value)}` : ""}
+              {almostFree.map((r) => {
+                const icon = rec.runeTree.nodes[String(r.key)]?.icon;
+                return (
+                  <li key={`af-${r.key}`}>
+                    <button
+                      type="button"
+                      onClick={() => onSelect(String(r.key))}
+                      className="group flex w-full items-center gap-2 rounded px-1.5 py-1 text-left transition-colors hover:bg-surface-2"
+                    >
+                      {icon ? (
+                        <img
+                          src={icon}
+                          alt=""
+                          aria-hidden="true"
+                          className="size-5 shrink-0 rounded"
+                          onError={(e) => {
+                            (
+                              e.currentTarget as HTMLImageElement
+                            ).style.display = "none";
+                          }}
+                        />
+                      ) : null}
+                      <span className="flex-1 truncate text-[13px] text-text group-hover:text-gold">
+                        {localized(r.name, locale) || `Runa ${r.key}`}
+                        {r.count > 1 ? (
+                          <span className="ml-1 text-[11px] text-dim">
+                            ×{r.count}
+                          </span>
+                        ) : null}
                       </span>
-                    ) : null}
-                  </button>
-                </li>
-              ))}
+                      <span className="shrink-0 text-[12px] tabular-nums text-gold">
+                        {fmt(r.cost)}
+                      </span>
+                      {r.st ? (
+                        <span className="shrink-0 text-[11px] tabular-nums text-dim">
+                          {statLabel(r.st)}
+                          {r.value != null ? ` +${fmtK(r.value)}` : ""}
+                        </span>
+                      ) : null}
+                    </button>
+                  </li>
+                );
+              })}
             </ul>
           </>
         ) : null}
@@ -93,25 +121,46 @@ export function RunePanels({ rec, onSelect }: RunePanelsProps) {
               Melhor custo-benefício (combate)
             </p>
             <ul className="flex flex-col gap-0.5">
-              {roi.map((r) => (
-                <li key={`roi-${r.key}`}>
-                  <button
-                    type="button"
-                    onClick={() => onSelect(String(r.key))}
-                    className="group flex w-full items-center gap-2 rounded px-1.5 py-1 text-left transition-colors hover:bg-surface-2"
-                  >
-                    <span className="flex-1 truncate text-[13px] text-text group-hover:text-gold">
-                      {localized(r.name) || `Runa ${r.key}`}
-                    </span>
-                    <span className="shrink-0 text-[12px] tabular-nums text-teal">
-                      +{fmtK(r.dPower)}
-                    </span>
-                    <span className="shrink-0 text-[12px] tabular-nums text-gold">
-                      {fmt(r.cost)}
-                    </span>
-                  </button>
-                </li>
-              ))}
+              {roi.map((r) => {
+                const icon = rec.runeTree.nodes[String(r.key)]?.icon;
+                return (
+                  <li key={`roi-${r.key}`}>
+                    <button
+                      type="button"
+                      onClick={() => onSelect(String(r.key))}
+                      className="group flex w-full items-center gap-2 rounded px-1.5 py-1 text-left transition-colors hover:bg-surface-2"
+                    >
+                      {icon ? (
+                        <img
+                          src={icon}
+                          alt=""
+                          aria-hidden="true"
+                          className="size-5 shrink-0 rounded"
+                          onError={(e) => {
+                            (
+                              e.currentTarget as HTMLImageElement
+                            ).style.display = "none";
+                          }}
+                        />
+                      ) : null}
+                      <span className="flex-1 truncate text-[13px] text-text group-hover:text-gold">
+                        {localized(r.name, locale) || `Runa ${r.key}`}
+                        {r.count > 1 ? (
+                          <span className="ml-1 text-[11px] text-dim">
+                            ×{r.count}
+                          </span>
+                        ) : null}
+                      </span>
+                      <span className="shrink-0 text-[12px] tabular-nums text-teal">
+                        +{fmtK(r.dPower)}
+                      </span>
+                      <span className="shrink-0 text-[12px] tabular-nums text-gold">
+                        {fmt(r.cost)}
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
             </ul>
           </>
         ) : null}
@@ -143,22 +192,43 @@ export function RunePanels({ rec, onSelect }: RunePanelsProps) {
         ) : (
           <>
             <ul className="flex flex-col gap-0.5">
-              {cart.map((r) => (
-                <li
-                  key={`cart-${r.key}`}
-                  className="flex items-center gap-2 px-1.5 py-1"
-                >
-                  <span className="flex-1 truncate text-[13px] text-text">
-                    {localized(r.name) || `Runa ${r.key}`}
-                  </span>
-                  <span className="shrink-0 text-[12px] tabular-nums text-teal">
-                    +{fmtK(r.dPower)}
-                  </span>
-                  <span className="shrink-0 text-[12px] tabular-nums text-gold">
-                    {fmt(r.cost)}
-                  </span>
-                </li>
-              ))}
+              {cart.map((r) => {
+                const icon = rec.runeTree.nodes[String(r.key)]?.icon;
+                return (
+                  <li
+                    key={`cart-${r.key}`}
+                    className="flex items-center gap-2 px-1.5 py-1"
+                  >
+                    {icon ? (
+                      <img
+                        src={icon}
+                        alt=""
+                        aria-hidden="true"
+                        className="size-5 shrink-0 rounded"
+                        onError={(e) => {
+                          (
+                            e.currentTarget as HTMLImageElement
+                          ).style.display = "none";
+                        }}
+                      />
+                    ) : null}
+                    <span className="flex-1 truncate text-[13px] text-text">
+                      {localized(r.name, locale) || `Runa ${r.key}`}
+                      {r.count > 1 ? (
+                        <span className="ml-1 text-[11px] text-dim">
+                          ×{r.count}
+                        </span>
+                      ) : null}
+                    </span>
+                    <span className="shrink-0 text-[12px] tabular-nums text-teal">
+                      +{fmtK(r.dPower)}
+                    </span>
+                    <span className="shrink-0 text-[12px] tabular-nums text-gold">
+                      {fmt(r.cost)}
+                    </span>
+                  </li>
+                );
+              })}
             </ul>
             <div className="mt-2 flex items-center justify-between border-t border-line pt-2">
               <span className="text-[11px] text-dim">Total</span>

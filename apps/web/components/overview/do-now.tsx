@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import type { GameDB, Recommendation } from "@tbh/engine";
 import { actionText } from "@/lib/action-text";
+import { useEntityLocale } from "@/lib/entity-locale";
 
 // ── DoNow ─────────────────────────────────────────────────────────────────────
 // The engine's prioritized action list (top ~8), each with a type icon. The coach
@@ -53,6 +54,7 @@ function iconFor(k: string): IconSpec {
 const MAX_ITEMS = 8;
 
 export function DoNow({ rec, db }: DoNowProps) {
+  const { locale } = useEntityLocale();
   const actions = rec.actions.slice(0, MAX_ITEMS);
 
   return (
@@ -82,7 +84,7 @@ export function DoNow({ rec, db }: DoNowProps) {
                   <Icon className={`size-3.5 ${color}`} aria-hidden="true" />
                 </span>
                 <span className="text-[13px] font-body leading-snug text-text">
-                  {actionText(a, db)}
+                  {actionText(a, db, locale)}
                 </span>
               </li>
             );

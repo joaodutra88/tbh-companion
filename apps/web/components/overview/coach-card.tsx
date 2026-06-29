@@ -5,6 +5,7 @@ import { Crosshair, Check } from "lucide-react";
 import type { GameDB, Recommendation } from "@tbh/engine";
 import { actionText } from "@/lib/action-text";
 import { heroName, pct } from "@/lib/format";
+import { useEntityLocale } from "@/lib/entity-locale";
 import { HeroSprite } from "./hero-card";
 
 // ── CoachCard (signature) ─────────────────────────────────────────────────────
@@ -17,7 +18,8 @@ interface CoachCardProps {
 }
 
 export function CoachCard({ rec, db }: CoachCardProps) {
-  const directive = actionText(rec.coach, db);
+  const { locale } = useEntityLocale();
+  const directive = actionText(rec.coach, db, locale);
   const carry = rec.meta.carryHero;
   const carryShare = rec.meta.carryShare;
   const hasCoach = rec.coach != null;
@@ -51,7 +53,7 @@ export function CoachCard({ rec, db }: CoachCardProps) {
               <HeroSprite hk={carry} db={db} size={72} className="rounded-md" />
             </div>
             <p className="mt-1.5 max-w-[88px] truncate text-center text-[11px] font-body text-dim">
-              {heroName(carry, db)}
+              {heroName(carry, db, locale)}
             </p>
           </div>
         )}
@@ -76,7 +78,7 @@ export function CoachCard({ rec, db }: CoachCardProps) {
           {hasCoach && carry != null && (
             <p className="mt-2.5 text-[12px] font-body text-dim">
               <span className="text-dim/70">Carry:</span>{" "}
-              <span className="text-text">{heroName(carry, db)}</span>
+              <span className="text-text">{heroName(carry, db, locale)}</span>
               {carryShare != null && (
                 <>
                   {" "}

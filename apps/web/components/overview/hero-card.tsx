@@ -5,6 +5,7 @@ import { Swords, Shield, Crown } from "lucide-react";
 import type { GameDB, HeroStat } from "@tbh/engine";
 import type { LevelInfo } from "@tbh/engine";
 import { fmt, fmtK, fmtDur, heroIcon, heroName } from "@/lib/format";
+import { useEntityLocale } from "@/lib/entity-locale";
 
 // ── HeroSprite ──────────────────────────────────────────────────────────────
 // Portrait with graceful fallback: a missing/broken sprite collapses to the
@@ -19,8 +20,9 @@ interface HeroSpriteProps {
 
 export function HeroSprite({ hk, db, size = 48, className = "" }: HeroSpriteProps) {
   const [broken, setBroken] = useState(false);
+  const { locale } = useEntityLocale();
   const src = heroIcon(hk, db);
-  const name = heroName(hk, db);
+  const name = heroName(hk, db, locale);
 
   if (!src || broken) {
     return (
@@ -59,6 +61,7 @@ interface HeroCardProps {
 }
 
 export function HeroCard({ hero, level, db, partyDPS, isCarry }: HeroCardProps) {
+  const { locale } = useEntityLocale();
   const hk = hero.heroKey;
   const share = partyDPS > 0 ? hero.dps / partyDPS : 0;
   const ap = level?.ap ?? 0;
@@ -93,7 +96,7 @@ export function HeroCard({ hero, level, db, partyDPS, isCarry }: HeroCardProps) 
         />
         <div className="min-w-0 flex-1">
           <p className="truncate font-display text-[14px] font-semibold leading-tight text-text">
-            {heroName(hk, db)}
+            {heroName(hk, db, locale)}
           </p>
           <p className="mt-0.5 text-[12px] font-body text-dim">
             {hero.cls ?? "—"} · Lv {level?.level ?? hero.level ?? "—"}

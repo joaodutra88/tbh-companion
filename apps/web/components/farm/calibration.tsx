@@ -3,6 +3,8 @@
 import React, { useState } from "react";
 import { SlidersHorizontal, Loader2, Plus, X } from "lucide-react";
 import type { FarmRow, GameDB, RecommendOpts } from "@tbh/engine";
+import { StageName } from "@/components/stage-name";
+import { stageOptionText } from "@/lib/stage-format";
 
 // ── Calibration ───────────────────────────────────────────────────────────────
 // Honest, manual calibration: the player types their real clear time (seconds) for
@@ -79,8 +81,12 @@ export function Calibration({ current, rows, db, recalibrate }: CalibrationProps
           <div className="flex flex-col gap-2.5">
             {/* Primary: current stage */}
             <label className="flex items-center gap-2 text-[13px]">
-              <span className="w-20 shrink-0 truncate text-dim">
-                Stage {curName}
+              <span className="w-28 min-w-0 overflow-hidden text-dim">
+                Stage{" "}
+                <StageName
+                  label={curName ?? current.key}
+                  diff={current.diff}
+                />
               </span>
               <input
                 type="number"
@@ -99,12 +105,12 @@ export function Calibration({ current, rows, db, recalibrate }: CalibrationProps
                 <select
                   value={extraKey}
                   onChange={(e) => setExtraKey(e.target.value)}
-                  className="w-20 shrink-0 rounded-md border border-line bg-bg px-1.5 py-1.5 text-[12px] text-text outline-none focus:border-gold/60"
+                  className="w-40 shrink-0 rounded-md border border-line bg-bg px-1.5 py-1.5 text-[12px] text-text outline-none focus:border-gold/60"
                 >
-                  <option value="">2º…</option>
+                  <option value="">2º stage…</option>
                   {otherStages.map((r) => (
                     <option key={r.key} value={r.key}>
-                      {db?.stages[r.key]?.label ?? r.label}
+                      {db != null ? stageOptionText(db, r.key) : (r.label ?? String(r.key))}
                     </option>
                   ))}
                 </select>

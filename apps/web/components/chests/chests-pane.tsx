@@ -2,8 +2,9 @@
 
 import React from "react";
 import { Package, Info, AlertCircle, Crosshair, Clock } from "lucide-react";
-import type { ChestPlan, Recommendation } from "@tbh/engine";
+import type { ChestPlan, GameDB, Recommendation } from "@tbh/engine";
 import { fmtDur } from "@/lib/format";
+import { StageName } from "@/components/stage-name";
 
 // ── ChestsPane ────────────────────────────────────────────────────────────────
 // Chest auto-open timers + drop window (rec.chests).
@@ -107,9 +108,10 @@ function ChestCard({ type }: ChestCardProps) {
 
 interface ChestsPaneProps {
   rec: Recommendation;
+  db?: GameDB | null;
 }
 
-export function ChestsPane({ rec }: ChestsPaneProps) {
+export function ChestsPane({ rec, db }: ChestsPaneProps) {
   const { dropCooldown, types, best } = rec.chests;
 
   return (
@@ -165,7 +167,11 @@ export function ChestsPane({ rec }: ChestsPaneProps) {
                 Stage
               </span>
               <span className="text-[22px] font-semibold tabular-nums leading-none text-text">
-                {best.label ?? String(best.key)}
+                <StageName
+                  db={db}
+                  stageKey={String(best.key)}
+                  label={best.label ?? String(best.key)}
+                />
               </span>
               <span className="text-[11px] tabular-nums text-dim">
                 nível {best.lvl}

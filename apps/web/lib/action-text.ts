@@ -22,9 +22,9 @@ function plural(n: number, one: string, many: string): string {
 
 // ── Localized lookups ───────────────────────────────────────────────────────
 
-function runeName(target: unknown, db: GameDB | null): string {
+function runeName(target: unknown, db: GameDB | null, locale: string): string {
   const raw = db?.runes[String(target)]?.name as unknown;
-  return localized(raw) || `runa ${String(target)}`;
+  return localized(raw, locale) || `runa ${String(target)}`;
 }
 
 const GRADE_PT: Record<string, string> = {
@@ -46,7 +46,7 @@ function gradeLabel(grade: string): string {
 
 // ── Mapping ─────────────────────────────────────────────────────────────────
 
-export function actionText(a: Action | null, db: GameDB | null): string {
+export function actionText(a: Action | null, db: GameDB | null, locale = "en-US"): string {
   if (!a) return "Tudo otimizado por agora 👌";
 
   switch (a.k) {
@@ -59,9 +59,9 @@ export function actionText(a: Action | null, db: GameDB | null): string {
     case "farm_push":
       return `Tente o stage ${str(a, "to")} (lv ${str(a, "lvl")})`;
     case "rune_dps_path":
-      return `Caminho de DPS: ${runeName(a.target, db)} (~${fmt(num(a, "cost"))} gold)`;
+      return `Caminho de DPS: ${runeName(a.target, db, locale)} (~${fmt(num(a, "cost"))} gold)`;
     case "party_tank":
-      return `Bote ${heroName(str(a, "hero"), db)} de frente`;
+      return `Bote ${heroName(str(a, "hero"), db, locale)} de frente`;
     case "gear_swap": {
       const n = num(a, "n");
       return `${n} ${plural(n, "troca", "trocas")} de equip valem POWER`;
@@ -83,7 +83,7 @@ export function actionText(a: Action | null, db: GameDB | null): string {
     case "fire_protection": {
       const hero = str(a, "hero");
       return hero
-        ? `Resistência a fogo baixa — reforce ${heroName(hero, db)}`
+        ? `Resistência a fogo baixa — reforce ${heroName(hero, db, locale)}`
         : "Resistência a fogo baixa";
     }
     default:

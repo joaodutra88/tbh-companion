@@ -92,6 +92,55 @@ describe("RunesPane (smoke)", () => {
     fireEvent.click(toggle);
     expect(toggle.getAttribute("aria-pressed")).toBe("false");
   });
+
+  it("renderiza ≥1 <image> para nós com ícone (icon propagado pelo engine)", async () => {
+    const rec = await demoRec();
+    // Verifica que o engine propagou icon em pelo menos um nó
+    const nodesWithIcon = Object.values(rec.runeTree.nodes).filter((n) => n.icon);
+    expect(nodesWithIcon.length).toBeGreaterThan(0);
+
+    const { container } = render(<RunesPane rec={rec} />);
+    // A árvore deve ter renderizado ao menos um <image> SVG
+    const images = container.querySelectorAll("image");
+    expect(images.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("exibe o card 'Próxima runa recomendada' com custo do demo", async () => {
+    const rec = await demoRec();
+    const { container } = render(<RunesPane rec={rec} />);
+
+    // O heading do card deve aparecer.
+    expect(container.textContent).toContain("Próxima runa recomendada");
+
+    // A melhor runa disponível: goldPlan.cart[0] → runeROI[0] → almostFree[0].
+    const bestRune =
+      rec.goldPlan.cart[0] ?? rec.runeROI[0] ?? rec.runes.almostFree[0];
+    if (bestRune) {
+      // O custo formatado deve aparecer no card.
+      expect(container.textContent).toContain(fmt(bestRune.cost));
+    }
+  });
+
+  it("botão 'ver na árvore' do card chama setSelectedKey", async () => {
+    const rec = await demoRec();
+    const bestRune =
+      rec.goldPlan.cart[0] ?? rec.runeROI[0] ?? rec.runes.almostFree[0];
+    if (!bestRune) return; // sem recomendação no demo — pular
+
+    const { container } = render(<RunesPane rec={rec} />);
+
+    // O card deve ter um botão "ver na árvore".
+    const cardSection = container.querySelector(
+      'section[aria-label="Próxima runa recomendada"]',
+    );
+    expect(cardSection).not.toBeNull();
+    const btn = cardSection!.querySelector("button");
+    expect(btn).not.toBeNull();
+    fireEvent.click(btn!);
+
+    // Após o clique, o detalhe deve mostrar o nó selecionado (dica some).
+    expect(container.textContent).not.toContain("Clique num nó da árvore");
+  });
 });
 
 describe("RunePanels (smoke)", () => {

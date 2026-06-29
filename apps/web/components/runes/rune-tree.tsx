@@ -5,6 +5,7 @@ import { Plus, Minus, Maximize2 } from "lucide-react";
 import type { Recommendation } from "@tbh/engine";
 import { statusColor } from "@/lib/rune-colors";
 import { localized } from "@/lib/format";
+import { useEntityLocale } from "@/lib/entity-locale";
 
 // ── RuneTree (SVG) ──────────────────────────────────────────────────────────
 // Árvore interativa de 197 nós: viewBox = bounds (origem negativa), um <g>
@@ -86,6 +87,8 @@ interface RuneNodeElProps {
   showDps: boolean;
   onSelect?: (key: string) => void;
   draggedRef: React.RefObject<boolean>;
+  /** Active entity locale — controls the language used in the aria-label. */
+  locale: string;
 }
 
 const RuneNodeEl = React.memo(function RuneNodeEl({
@@ -97,6 +100,7 @@ const RuneNodeEl = React.memo(function RuneNodeEl({
   showDps,
   onSelect,
   draggedRef,
+  locale,
 }: RuneNodeElProps) {
   const c = statusColor(n.status);
   const handleClick = useCallback(() => {
@@ -119,7 +123,7 @@ const RuneNodeEl = React.memo(function RuneNodeEl({
       transform={`translate(${n.x} ${n.y})`}
       onClick={onSelect ? handleClick : undefined}
       role={onSelect ? "button" : undefined}
-      aria-label={localized(n.name) || `Runa ${nodeKey}`}
+      aria-label={localized(n.name, locale) || `Runa ${nodeKey}`}
     >
       {/* important (combat AD/AS) → glow suave atrás */}
       {n.important ? (
@@ -152,6 +156,22 @@ const RuneNodeEl = React.memo(function RuneNodeEl({
         strokeWidth={c.strokeWidth}
         opacity={c.opacity}
       />
+      {/* ícone do nó: por cima do fill colorido; clip circular compartilhado */}
+      {n.icon ? (
+        <image
+          href={n.icon}
+          x={-NODE_R}
+          y={-NODE_R}
+          width={NODE_R * 2}
+          height={NODE_R * 2}
+          clipPath="url(#rune-node-clip)"
+          preserveAspectRatio="xMidYMid slice"
+          pointerEvents="none"
+          onError={(e) => {
+            (e.currentTarget as SVGImageElement).style.display = "none";
+          }}
+        />
+      ) : null}
     </g>
   );
 });
@@ -190,6 +210,7 @@ export function RuneTree({
   activeCat = null,
   showDps = true,
 }: RuneTreeProps) {
+  const { locale } = useEntityLocale();
   const { minX, minY } = bounds;
   const vbW = bounds.maxX - bounds.minX;
   const vbH = bounds.maxY - bounds.minY;
@@ -318,9 +339,10 @@ export function RuneTree({
           showDps={showDps}
           onSelect={onSelect}
           draggedRef={draggedRef}
+          locale={locale}
         />
       )),
-    [nodes, selectedKey, onSelect, activeCat, budget, showDps],
+    [nodes, selectedKey, onSelect, activeCat, budget, showDps, locale],
   );
 
   return (
@@ -339,6 +361,12 @@ export function RuneTree({
         onPointerUp={endPan}
         onPointerCancel={endPan}
       >
+        {/* clipPath partilhado por todos os 197 nós — definido uma única vez */}
+        <defs>
+          <clipPath id="rune-node-clip">
+            <circle r={NODE_R} />
+          </clipPath>
+        </defs>
         <g
           className={`rune-viewport${dragging ? " dragging" : ""}`}
           transform={`translate(${t.x} ${t.y}) scale(${t.s})`}

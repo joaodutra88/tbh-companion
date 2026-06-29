@@ -30,8 +30,15 @@ describe("actionText", () => {
     expect(t).toContain("28");
   });
 
-  it("rune_dps_path resolves rune name and formats cost", () => {
+  it("rune_dps_path resolves rune name (en-US default) and formats cost", () => {
     const t = actionText({ k: "rune_dps_path", target: 413, cost: 530000 }, db);
+    // en-US is the default locale — the stub has en-US → "Rune of War".
+    expect(t).toContain("Rune of War");
+    expect(t).toContain("530.000");
+  });
+
+  it("rune_dps_path resolves rune name in an explicit locale", () => {
+    const t = actionText({ k: "rune_dps_path", target: 413, cost: 530000 }, db, "pt-BR");
     expect(t).toContain("Runa de Guerra");
     expect(t).toContain("530.000");
   });

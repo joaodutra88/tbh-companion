@@ -20,7 +20,8 @@ describe("FarmPane (smoke)", () => {
     // Recommended-stage card: eyebrow + the stage name (demo recommend = "3-1").
     expect(screen.getByText("Stage recomendado")).toBeTruthy();
     const recName = db.stages[rec.farm.recommend!.key]?.label ?? rec.farm.recommend!.label;
-    expect(screen.getAllByText(new RegExp(`Stage ${recName}`)).length).toBeGreaterThan(0);
+    // StageName renders the label in its own <span>; check the label appears anywhere.
+    expect(screen.getAllByText(new RegExp(String(recName))).length).toBeGreaterThan(0);
 
     // At least one per-hour rate is rendered ("…/h").
     expect(screen.getAllByText(/\/h$/).length).toBeGreaterThan(0);
@@ -51,7 +52,8 @@ describe("FarmPane (smoke)", () => {
       db.stages[rec.farm.recommend!.key]?.label ??
       rec.farm.recommend!.label ??
       rec.farm.recommend!.key;
-    expect(screen.getAllByText(new RegExp(`Stage ${recName}`)).length).toBeGreaterThan(0);
+    // StageName renders the label in its own <span>; check the label appears anywhere.
+    expect(screen.getAllByText(new RegExp(String(recName))).length).toBeGreaterThan(0);
 
     // "Estaciona offline" block renders only when bestPark exists.
     if (rec.idle.bestPark) {

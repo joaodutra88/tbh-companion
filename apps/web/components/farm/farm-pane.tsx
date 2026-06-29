@@ -4,6 +4,7 @@ import React from "react";
 import { Crosshair, Check, Info, Anchor } from "lucide-react";
 import type { FarmRow, GameDB, ParkStage, Recommendation, RecommendOpts } from "@tbh/engine";
 import { fmtPerHour, fmtDur } from "@/lib/format";
+import { StageName } from "@/components/stage-name";
 import { StageTable } from "./stage-table";
 import { Calibration } from "./calibration";
 import { IdleSection } from "./idle-section";
@@ -106,7 +107,8 @@ function RecommendedCard({
         </div>
 
         <p className="mt-2 font-display text-[28px] font-semibold leading-tight tracking-[-0.01em] text-text md:text-[32px]">
-          Stage {name}
+          Stage{" "}
+          <StageName label={name ?? String(recommend.key)} diff={recommend.diff} />
         </p>
         <p className="mt-0.5 text-[12px] text-dim tabular-nums">
           nível {recommend.lvl}
@@ -174,7 +176,8 @@ function AutoFarmHighlights({ recommend, bestPark, db }: AutoFarmHighlightsProps
           </span>
         </div>
         <p className="text-[20px] font-semibold leading-tight text-text">
-          Stage {recName}
+          Stage{" "}
+          <StageName label={recName} diff={recommend.diff} />
         </p>
         <p className="text-[11px] tabular-nums text-dim">nível {recommend.lvl}</p>
         <div className="mt-2 flex items-baseline gap-3">
@@ -206,7 +209,11 @@ function AutoFarmHighlights({ recommend, bestPark, db }: AutoFarmHighlightsProps
             </span>
           </div>
           <p className="text-[20px] font-semibold leading-tight text-text">
-            Stage {parkName}
+            Stage{" "}
+            <StageName
+              label={parkName ?? String(bestPark.key)}
+              diff={db?.stages[bestPark.key]?.diff}
+            />
           </p>
           <p className="text-[11px] tabular-nums text-dim">nível {bestPark.lvl}</p>
           <div className="mt-2 flex items-center gap-1.5 text-[11px] text-dim">

@@ -4,6 +4,7 @@ import React, { useMemo, useState } from "react";
 import { ArrowDown, ArrowUp, Table2 } from "lucide-react";
 import type { FarmRow, GameDB } from "@tbh/engine";
 import { fmtPerHour, fmtDur } from "@/lib/format";
+import { StageName } from "@/components/stage-name";
 
 // ── StageTable ────────────────────────────────────────────────────────────────
 // The full farmable-stage ledger (rec.farm.all): a sortable, scrollable war-table.
@@ -168,10 +169,12 @@ export function StageTable({ rows, currentKey, recommendKey, db }: StageTablePro
                           isRec ? "bg-gold" : isCur ? "bg-teal" : "bg-transparent"
                         }`}
                       />
-                      <span className="tabular-nums text-text">{name}</span>
-                      <span className="text-[11px] tabular-nums text-dim/70">
-                        nv {row.lvl}
-                      </span>
+                      <StageName
+                        label={name ?? String(row.key)}
+                        diff={row.diff}
+                        lvl={row.lvl}
+                        showLevel
+                      />
                       {isRec && (
                         <span className="rounded-full bg-gold/15 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-gold">
                           melhor

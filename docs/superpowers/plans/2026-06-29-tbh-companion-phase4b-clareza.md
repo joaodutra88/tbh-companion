@@ -1,0 +1,63 @@
+# TBH Companion — Fase 4b-i.1 (Clareza de combate) Plan
+
+> REQUIRED SUB-SKILL: superpowers:subagent-driven-development. War-table design (frontend-design). Checkbox steps.
+
+**Goal:** Fechar o gap de clareza nas abas vivas: (1) dificuldade visível em todo lugar, (2) ícones de runa no nó, (3) recomendação de runa liderando, (4) `statLabel()` em inglês. **Sem mudar a lógica/saída numérica do engine** — só reexpor `icon` (aditivo) + UI.
+
+## Global Constraints
+Node 20; TS strict, zero `any`; war-table utilities (sem inline var() exceto valores dinâmicos: x/y, transform, href); PT-BR; mono nos números; save client-only. **Oráculo do engine (106 asserts) tem que continuar verde.** Não quebrar Fases 1-4b-i. Imagens de runa já vendorizadas em `apps/web/public/game/runes/` (39 PNGs). Verificação ao vivo limitada (extensão estala no gamedata) → tests + read_page, não screenshot.
+
+## File Structure
+`apps/web/lib/stage-format.ts`(+test), `apps/web/components/stage-name.tsx`, `apps/web/lib/stat-labels.ts`(+test), `packages/engine/src/{types,runes}.ts`, `apps/web/components/runes/{rune-tree,runes-pane,rune-panels,rune-detail}.tsx`, `apps/web/components/farm/{farm-pane,stage-table,calibration}.tsx`, `apps/web/components/chests/chests-pane.tsx`.
+
+---
+
+### Task 1: Dificuldade visível em todo lugar
+**Files:** `apps/web/lib/stage-format.ts`(+test), `apps/web/components/stage-name.tsx`, e wire em `farm/{farm-pane,stage-table,calibration}.tsx` + `chests/chests-pane.tsx`.
+**Interfaces:** Produz `DIFF_LABEL: Record<string,string>` (NORMAL→Normal, NIGHTMARE→Pesadelo, HELL→Inferno, TORMENT→Tormento), `DIFF_ORDER`, `diffTone(diff)` (classe Tailwind por tier, só tokens dim/text/gold/coral), `stageOptionText(db, key)` → ex. `"Tormento · 3-9 (nv 95)"`; `<StageName db stageKey showLevel? />` e variante via props diretas (label/diff/lvl).
+
+- [ ] **Step 1:** `lib/stage-format.ts` — mapas + `diffTone()` + `stageOptionText(db, key)` (lê `db.stages[key].{diff,label,lvl}`; tolera `diff` ausente → sem selo). Puro. Unit-test: labels PT-BR corretos, `stageOptionText` inclui a dificuldade, fallback sem diff.
+- [ ] **Step 2:** `components/stage-name.tsx` — `<StageName>` que renderiza `<selo diff (diffTone)> <label> <nv X opcional>`. Aceita `{db, stageKey}` (resolve do db) OU `{label, diff, lvl}` diretos. Selo = chip compacto uppercase com o nome PT-BR.
+- [ ] **Step 3:** Wire no Farm — `farm-pane.tsx`: `RecommendedCard` (o `Stage {name}` + `nível`) e `AutoFarmHighlights` (deixa rolando / estaciona offline) passam a usar `<StageName>`. `stage-table.tsx`: a célula "Stage" usa `<StageName>` (selo + label + nv) no lugar de `name` + `nv {lvl}`.
+- [ ] **Step 4:** Wire na calibração — `calibration.tsx`: o rótulo do stage primário usa `<StageName>`; o `<select>` do 2º stage fica mais largo (não `w-20`) e cada `<option>` usa `stageOptionText(db, r.key)` (dificuldade+label+nv). Baús — `chests-pane.tsx`: "melhor stage pra loot" usa `<StageName>`.
+- [ ] **Step 5: smoke** (jsdom): `<StageName>` mostra o label da dificuldade; uma `<option>` da calibração contém o texto da dificuldade. `pnpm -F web test` + typecheck + build. **Commit** `feat(web): mostrar dificuldade (Normal/Pesadelo/Inferno/Tormento) em todo stage nomeado`.
+
+---
+
+### Task 2: Runas — religar o ícone (engine) + desenhar no nó
+**Files:** `packages/engine/src/types.ts`, `packages/engine/src/runes.ts`, `apps/web/components/runes/rune-tree.tsx`.
+**Interfaces:** `runeNodes` e `RuneTreeNode` ganham `icon?: string`; `runeTreeStatus()` propaga `icon: pos.icon`. Nó da árvore desenha `<image>` clipado.
+
+- [ ] **Step 1:** `types.ts` — `runeNodes: Record<string, { x:number; y:number; cat:string; icon?:string }>` (linha ~50) e adicionar `icon?: string` à interface/tipo do `RuneTreeNode` (o nó de saída de `runeTreeStatus`, ~linha 162). Confirmar lendo o arquivo.
+- [ ] **Step 2:** `runes.ts` — em `runeTreeStatus()` (onde monta `base = { x, y, cat, level }`, ~linha 191), incluir `icon: pos.icon`. ADITIVO — não mexer em status/cost/dPower/etc.
+- [ ] **Step 3:** rodar o **oráculo do engine** (`pnpm -F @tbh/engine test`, 106 asserts) — TEM que continuar verde (icon é aditivo). Se quebrar, parar e investigar (não seguir).
+- [ ] **Step 4:** `rune-tree.tsx` — no `RuneNodeEl`, se `n.icon`, desenhar `<image href={n.icon} x={-14} y={-14} width={28} height={28} clipPath=…>` (clip circular r≈NODE_R) ENTRE o corpo do círculo e os anéis — corpo colorido por status fica de fundo, anéis (almostfree/dps/important/selected) por cima. `onError`/sem icon → mantém só o círculo atual (fallback). Manter `React.memo`/hover CSS.
+- [ ] **Step 5: smoke** (jsdom): com o demo rec, a árvore renderiza ≥1 `<image>` (nós com ícone). `pnpm -F web test` + engine test + typecheck + build. **Commit** `feat(engine,web): reexpor icon da runa e desenhar no nó da árvore`.
+
+---
+
+### Task 3: Runas — recomendação liderando + statLabel + ícones nos painéis
+**Files:** `apps/web/lib/stat-labels.ts`(+test), `apps/web/components/runes/{runes-pane,rune-panels,rune-detail}.tsx`.
+**Interfaces:** `statLabel(key: string): string` em inglês (fallback = humanizar a key, nunca a key crua). Card "Próxima runa recomendada" no topo do RunesPane. Ícones (de `rec.runeTree.nodes[key].icon`) nas listas/detalhe.
+
+- [ ] **Step 1:** `lib/stat-labels.ts` — `statLabel(key)` retorna rótulo legível em **INGLÊS** (consistente com a decisão de nomes do jogo em inglês — ver Task 4). Mapa conciso pras stat keys de runa (enumere os `st` distintos de `db.runeLevels`), ex. `AllHeroAttackDamage`→"All Hero Attack Damage", `MaxAmountActBossChest`→"Act Boss Chest Max Capacity", `MaxInventorySlot`→"Max Inventory Slot", `IncreaseGoldAmount`→"Gold Gain". **Fallback = humanizar o camelCase** (inserir espaço antes de cada maiúscula, ex. `OfflineRewardGoldPercent`→"Offline Reward Gold Percent") — NUNCA exibir a key camelCase crua. Puro, unit-test (algumas keys mapeadas + fallback humanizado). (`db.statStrings` NÃO existe no nosso GameDB — confirmado; por isso mapa+humanize.)
+- [ ] **Step 2:** usar `statLabel()` onde hoje mostra `st` cru: `rune-detail.tsx` (campo "Efeito") e `rune-panels.tsx` (a coluna de stat das "mais baratas").
+- [ ] **Step 3:** ícones nos painéis — em `rune-panels.tsx` (listas recomendadas/cart) e `rune-detail.tsx`, mostrar o ícone da runa (`rec.runeTree.nodes[String(key)]?.icon`, `<img>` pequeno com onError→some). Sem quebrar layout/truncate.
+- [ ] **Step 3b: dedupe/distinção** — runas recomendadas com **nome idêntico** spamam a lista (confirmado no dado: ex. "Rune of Expansion" ×6, todas = `MaxInventorySlot`). Nas listas (almostFree/ROI/cart), **deduplicar entradas de (nome + efeito) idênticos** — mostrar uma só (a mais barata/representativa; opcional sufixo "×N"). Quando o efeito difere, o `statLabel` ao lado já distingue, então não dedupe nesse caso. O card lead (Step 4) mostra só a melhor, sem spam. Não alterar o engine — dedupe é display-only no componente.
+- [ ] **Step 4:** `runes-pane.tsx` — card **"Próxima runa recomendada"** largo no topo (acima da árvore/legenda): escolhe a melhor compra agora — prioridade `goldPlan.cart[0]` → top `runeROI[0]` (combate) → `almostFree[0]`. Mostra ícone + nome (localized) + efeito (statLabel) + custo + ΔPOWER + botão "ver na árvore" (`setSelectedKey`). Estilo no padrão do CoachCard (gold-accent, war-table). Some se não houver recomendação.
+- [ ] **Step 5: smoke** (jsdom): `statLabel` mapeia; o card "Próxima runa recomendada" renderiza nome+custo com o demo. `pnpm -F web test` + typecheck + build. **Commit** `feat(web): runas — card "próxima runa", statLabel (inglês) e ícones nos painéis`.
+
+### Task 4: Nomes do jogo locale-aware (inglês por padrão + seletor)
+**Files:** `apps/web/lib/format.ts` (localized), um contexto/estado de locale de entidade (ex. `apps/web/lib/entity-locale.tsx` ou no `recommendation-context`), um seletor no shell (`apps/web/components/app-shell.tsx` ou um componente novo), e os call sites de nomes (heroName/rune/item/stage).
+**Decisão (João):** nomes do JOGO (runas/heróis/itens/stages) em **inglês (en-US) por padrão** + **seletor de idioma** pra trocar entre os 16 locales do jogo. A **UI/chrome do app continua pt-BR**. Causa: jogo do João em inglês, app travava pt-BR. (Copilot original usa navigator.language; nós damos controle explícito com default en-US.)
+
+- [ ] **Step 1:** `localized(value, locale?)` — adicionar parâmetro `locale` opcional; ordem de resolução: `value[locale] → value['en-US'] → value['pt-BR'] → primeiro string`. **Default do locale = 'en-US'** (não pt-BR). Pure; unit-test (locale dado, fallback en-US, fallback chain). NÃO quebrar chamadas existentes (locale default).
+- [ ] **Step 2:** fonte do locale de entidade — um estado/contexto client (default 'en-US', persistido em localStorage, chave ex. `tbh:entityLocale`). Lista de locales = os 16 do jogo (en-US, pt-BR, es-ES, fr-FR, de-DE, ja-JP, ko-KR, zh-Hans, zh-Hant, ru-RU, pl-PL, tr-TR, uk-UA, id-ID, th-TH, vi-VN). `prefers`/SSR-safe (sem hydration mismatch).
+- [ ] **Step 3:** seletor no shell (top-bar) — `<select>`/dropdown compacto war-table com os 16 idiomas (label amigável), que seta o contexto. Acessível (label).
+- [ ] **Step 4:** propagar o locale ativo nos render de nome: `heroName`, e onde `localized(name)` é chamado pra runas/itens/stages (rune-detail, rune-panels, runes-pane card, roster, coach, etc.) → `localized(name, entityLocale)`. `<StageName>` usa `db.stages[k].label` (não-localizado) — manter; o seletor afeta só nomes localizados (runa/herói/item).
+- [ ] **Step 5: smoke** (jsdom): com locale='en-US' um nome de runa sai em inglês ("Rune of …"); trocar pra 'pt-BR' sai "Runa …". `pnpm -F web test`+typecheck+build. **Commit** `feat(web): nomes do jogo em inglês por padrão + seletor de idioma (localized locale-aware)`.
+
+## Self-Review
+Dificuldade → T1 (`<StageName>` em Farm+calibração+Baús). Ícones engine+nó → T2 (oráculo verde). Recomendação liderando + statLabel + ícones nos painéis → T3. Engine só aditivo. War-table/PT-BR/zero-any. Smokes por task.
+
+## Pós-merge (controller): review final whole-branch → merge `--no-ff` → push (auto-deploy Vercel). Verificação ao vivo limitada (extensão estala no gamedata) — tests + read_page. Atualizar a memória project_tbh-companion + o ledger `.superpowers/sdd/progress.md`.

@@ -53,7 +53,7 @@ export interface GameDB {
   levels: number[];
   offlineRewards: Record<string, { gold: number; exp: number; kills: number }>;
   runeTree: { edges: [number, number][]; starts?: number[] };
-  runeNodes: Record<string, { x: number; y: number; cat: string }>;
+  runeNodes: Record<string, { x: number; y: number; cat: string; icon?: string }>;
   runeBounds: unknown;
   boxDrops: Record<string, [number, number][]>;
   dropGroups: Record<string, number[]>;
