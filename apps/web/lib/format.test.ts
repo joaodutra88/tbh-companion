@@ -77,18 +77,40 @@ describe("pct", () => {
 });
 
 describe("localized", () => {
-  it("resolves locale maps preferring pt-BR", () => {
-    expect(localized({ "pt-BR": "Cavaleiro", "en-US": "Knight" })).toBe("Cavaleiro");
+  it("defaults to en-US when no locale given", () => {
+    expect(localized({ "pt-BR": "Cavaleiro", "en-US": "Knight" })).toBe("Knight");
     expect(localized({ "en-US": "Knight" })).toBe("Knight");
     expect(localized("plain")).toBe("plain");
     expect(localized(undefined)).toBe("");
   });
+
+  it("returns the requested locale when present", () => {
+    const map = { "en-US": "Knight", "pt-BR": "Cavaleiro", "es-ES": "Caballero" };
+    expect(localized(map, "pt-BR")).toBe("Cavaleiro");
+    expect(localized(map, "es-ES")).toBe("Caballero");
+    expect(localized(map, "en-US")).toBe("Knight");
+  });
+
+  it("falls back to en-US when the requested locale is absent", () => {
+    expect(localized({ "en-US": "Knight" }, "ko-KR")).toBe("Knight");
+  });
+
+  it("falls back to pt-BR when en-US is also absent", () => {
+    expect(localized({ "pt-BR": "Cavaleiro" }, "ko-KR")).toBe("Cavaleiro");
+  });
+
+  it("falls back to the first available string when no known locale matches", () => {
+    expect(localized({ "ja-JP": "騎士" }, "ko-KR")).toBe("騎士");
+  });
 });
 
 describe("heroName / heroIcon", () => {
-  it("resolves i18n hero names", () => {
-    expect(heroName(201, db)).toBe("Explorador");
-    expect(heroName(301, db)).toBe("Feiticeiro");
+  it("resolves i18n hero names in en-US by default", () => {
+    expect(heroName(201, db)).toBe("Ranger");
+    expect(heroName(301, db)).toBe("Feiticeiro"); // plain string — unchanged
+  });
+  it("resolves to a requested locale", () => {
+    expect(heroName(201, db, "pt-BR")).toBe("Explorador");
   });
   it("falls back for unknown heroes", () => {
     expect(heroName(999, db)).toBe("Herói 999");

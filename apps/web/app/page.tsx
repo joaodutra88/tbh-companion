@@ -8,6 +8,7 @@ import { FarmPane } from "@/components/farm/farm-pane";
 import { ChestsPane } from "@/components/chests/chests-pane";
 import { RunesPane } from "@/components/runes/runes-pane";
 import { useRecommendation } from "@/lib/recommendation-context";
+import { LanguageSelect } from "@/components/language-select";
 
 // ── Status slot (top-bar right side) ─────────────────────────────────────────
 
@@ -40,6 +41,7 @@ function StatusSlot() {
 
   return (
     <div className="flex items-center gap-2">
+      <LanguageSelect />
       <span aria-hidden="true" className={`w-2 h-2 rounded-full shrink-0 ${dotClass}`} />
       <span className="text-[12px] text-dim font-body">{label}</span>
       {status !== "idle" && (

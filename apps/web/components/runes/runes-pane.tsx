@@ -5,6 +5,7 @@ import { Sparkles } from "lucide-react";
 import type { Recommendation } from "@tbh/engine";
 import type { RuneCat } from "@/lib/rune-colors";
 import { fmt, fmtK, localized } from "@/lib/format";
+import { useEntityLocale } from "@/lib/entity-locale";
 import { statLabel } from "@/lib/stat-labels";
 import { RuneTree, type RuneBounds } from "./rune-tree";
 import { RuneLegend } from "./rune-legend";
@@ -42,6 +43,7 @@ interface RunesPaneProps {
 }
 
 export function RunesPane({ rec }: RunesPaneProps) {
+  const { locale } = useEntityLocale();
   const { nodes, edges, bounds, firstDpsPath } = rec.runeTree;
   const gold = rec.runes.gold;
 
@@ -132,7 +134,7 @@ export function RunesPane({ rec }: RunesPaneProps) {
                 Próxima runa recomendada
               </p>
               <p className="mt-0.5 truncate text-[16px] font-semibold leading-snug text-text">
-                {localized(bestRune.name) || `Runa ${bestRune.key}`}
+                {localized(bestRune.name, locale) || `Runa ${bestRune.key}`}
               </p>
               {bestRune.st ? (
                 <p className="text-[12px] text-dim">{statLabel(bestRune.st)}</p>

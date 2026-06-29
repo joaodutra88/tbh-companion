@@ -4,6 +4,7 @@ import React from "react";
 import { ShoppingCart, Route } from "lucide-react";
 import type { Recommendation } from "@tbh/engine";
 import { fmt, fmtK, localized } from "@/lib/format";
+import { useEntityLocale } from "@/lib/entity-locale";
 import { statLabel } from "@/lib/stat-labels";
 import { dedupeByNameAndSt } from "@/lib/rune-dedupe";
 
@@ -29,6 +30,7 @@ const MAX_ROI = 6;
 
 
 export function RunePanels({ rec, onSelect }: RunePanelsProps) {
+  const { locale } = useEntityLocale();
   const almostFree = dedupeByNameAndSt(rec.runes.almostFree).slice(0, MAX_ALMOST_FREE);
   const roi = dedupeByNameAndSt(rec.runeROI).slice(0, MAX_ROI);
   const { totalCost, totalPower, gold } = rec.goldPlan;
@@ -43,6 +45,7 @@ export function RunePanels({ rec, onSelect }: RunePanelsProps) {
           (firstDpsPath.steps.length > 0
             ? firstDpsPath.steps[firstDpsPath.steps.length - 1]!.name
             : String(firstDpsPath.target)),
+        locale,
       )
     : "";
 
@@ -86,7 +89,7 @@ export function RunePanels({ rec, onSelect }: RunePanelsProps) {
                         />
                       ) : null}
                       <span className="flex-1 truncate text-[13px] text-text group-hover:text-gold">
-                        {localized(r.name) || `Runa ${r.key}`}
+                        {localized(r.name, locale) || `Runa ${r.key}`}
                         {r.count > 1 ? (
                           <span className="ml-1 text-[11px] text-dim">
                             ×{r.count}
@@ -141,7 +144,7 @@ export function RunePanels({ rec, onSelect }: RunePanelsProps) {
                         />
                       ) : null}
                       <span className="flex-1 truncate text-[13px] text-text group-hover:text-gold">
-                        {localized(r.name) || `Runa ${r.key}`}
+                        {localized(r.name, locale) || `Runa ${r.key}`}
                         {r.count > 1 ? (
                           <span className="ml-1 text-[11px] text-dim">
                             ×{r.count}

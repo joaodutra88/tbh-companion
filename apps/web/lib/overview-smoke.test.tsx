@@ -24,7 +24,7 @@ describe("Overview (smoke)", () => {
     expect(screen.getByText(/Próxima jogada/i)).toBeTruthy();
     expect(screen.getAllByText(/stage 1306/i).length).toBeGreaterThan(0);
 
-    // At least one hero name (carry 201 = "Explorador" in PT-BR).
-    expect(screen.getAllByText(/Explorador/).length).toBeGreaterThan(0);
+    // At least one hero name (carry 201 = "Ranger" in en-US, the default locale).
+    expect(screen.getAllByText(/Ranger/).length).toBeGreaterThan(0);
   });
 });

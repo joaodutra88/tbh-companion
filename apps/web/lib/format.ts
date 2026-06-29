@@ -5,15 +5,21 @@ import type { GameDB } from "@tbh/engine";
 
 // ── i18n ────────────────────────────────────────────────────────────────────
 // Game DB strings (hero/rune names) are either a plain string or a locale map
-// like { "pt-BR": "Cavaleiro", "en-US": "Knight", ... }. Resolve to PT-BR.
+// like { "pt-BR": "Cavaleiro", "en-US": "Knight", ... }.
+// Resolution order: value[locale] → value['en-US'] → value['pt-BR'] → first string.
+// Default locale is 'en-US' (game runs in English for most players).
 
-export function localized(value: unknown): string {
+export function localized(value: unknown, locale = "en-US"): string {
   if (typeof value === "string") return value;
   if (typeof value === "number") return String(value);
   if (value && typeof value === "object") {
     const map = value as Record<string, unknown>;
-    const preferred = map["pt-BR"] ?? map["en-US"];
-    if (typeof preferred === "string") return preferred;
+    const byLocale = map[locale];
+    if (typeof byLocale === "string") return byLocale;
+    const byEn = map["en-US"];
+    if (typeof byEn === "string") return byEn;
+    const byPt = map["pt-BR"];
+    if (typeof byPt === "string") return byPt;
     const first = Object.values(map).find((v) => typeof v === "string");
     if (typeof first === "string") return first;
   }
@@ -72,10 +78,10 @@ export function fmtPerHour(n: number): string {
 
 // ── Hero resolution ─────────────────────────────────────────────────────────
 
-/** Hero display name (PT-BR), falling back to a stable label. */
-export function heroName(hk: number | string, db: GameDB | null): string {
+/** Hero display name (en-US by default), falling back to a stable label. */
+export function heroName(hk: number | string, db: GameDB | null, locale = "en-US"): string {
   const raw = db?.heroes[String(hk)]?.name as unknown;
-  const name = localized(raw);
+  const name = localized(raw, locale);
   return name || `Herói ${hk}`;
 }
 

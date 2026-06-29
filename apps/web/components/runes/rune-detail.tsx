@@ -4,6 +4,7 @@ import React from "react";
 import { MousePointerClick } from "lucide-react";
 import type { Recommendation } from "@tbh/engine";
 import { fmt, fmtK, fmtDur, localized } from "@/lib/format";
+import { useEntityLocale } from "@/lib/entity-locale";
 import { statLabel } from "@/lib/stat-labels";
 import {
   RUNE_STATUS_LABEL,
@@ -47,6 +48,7 @@ function Field({
 }
 
 export function RuneDetail({ node }: RuneDetailProps) {
+  const { locale } = useEntityLocale();
   if (!node) {
     return (
       <div className="flex items-center gap-2 rounded-lg border border-line bg-surface px-4 py-3 text-[12px] text-dim">
@@ -79,7 +81,7 @@ export function RuneDetail({ node }: RuneDetailProps) {
           />
         ) : null}
         <span className="text-[15px] font-semibold leading-tight text-text">
-          {localized(node.name) || "Runa"}
+          {localized(node.name, locale) || "Runa"}
         </span>
         <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface-2 px-2 py-0.5">
           <span

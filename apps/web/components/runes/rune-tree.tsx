@@ -5,6 +5,7 @@ import { Plus, Minus, Maximize2 } from "lucide-react";
 import type { Recommendation } from "@tbh/engine";
 import { statusColor } from "@/lib/rune-colors";
 import { localized } from "@/lib/format";
+import { useEntityLocale } from "@/lib/entity-locale";
 
 // ── RuneTree (SVG) ──────────────────────────────────────────────────────────
 // Árvore interativa de 197 nós: viewBox = bounds (origem negativa), um <g>
@@ -86,6 +87,8 @@ interface RuneNodeElProps {
   showDps: boolean;
   onSelect?: (key: string) => void;
   draggedRef: React.RefObject<boolean>;
+  /** Active entity locale — controls the language used in the aria-label. */
+  locale: string;
 }
 
 const RuneNodeEl = React.memo(function RuneNodeEl({
@@ -97,6 +100,7 @@ const RuneNodeEl = React.memo(function RuneNodeEl({
   showDps,
   onSelect,
   draggedRef,
+  locale,
 }: RuneNodeElProps) {
   const c = statusColor(n.status);
   const handleClick = useCallback(() => {
@@ -119,7 +123,7 @@ const RuneNodeEl = React.memo(function RuneNodeEl({
       transform={`translate(${n.x} ${n.y})`}
       onClick={onSelect ? handleClick : undefined}
       role={onSelect ? "button" : undefined}
-      aria-label={localized(n.name) || `Runa ${nodeKey}`}
+      aria-label={localized(n.name, locale) || `Runa ${nodeKey}`}
     >
       {/* important (combat AD/AS) → glow suave atrás */}
       {n.important ? (
@@ -206,6 +210,7 @@ export function RuneTree({
   activeCat = null,
   showDps = true,
 }: RuneTreeProps) {
+  const { locale } = useEntityLocale();
   const { minX, minY } = bounds;
   const vbW = bounds.maxX - bounds.minX;
   const vbH = bounds.maxY - bounds.minY;
@@ -334,9 +339,10 @@ export function RuneTree({
           showDps={showDps}
           onSelect={onSelect}
           draggedRef={draggedRef}
+          locale={locale}
         />
       )),
-    [nodes, selectedKey, onSelect, activeCat, budget, showDps],
+    [nodes, selectedKey, onSelect, activeCat, budget, showDps, locale],
   );
 
   return (
