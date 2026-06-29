@@ -1,21 +1,25 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import type { Recommendation, GameDB } from "@tbh/engine";
+import type { Recommendation, GameDB, PlayerSaveData } from "@tbh/engine";
 import { heroIcon, heroName } from "@/lib/format";
 import { SlotGrid } from "./slot-grid";
+import { SlotCompare } from "./slot-compare";
 
 // ── GearPane ──────────────────────────────────────────────────────────────────
 // Aba de equipamento: hero picker (party) + grid de 10 slots do herói selecionado.
-// Estado de herói + slot selecionados vive aqui; o comparador de candidatos (Task 3)
-// receberá `selectedHero` + `selectedSlot` via props quando implementado.
+// Estado de herói + slot selecionados vive aqui; o comparador (SlotCompare) é
+// renderizado no aside quando um slot é selecionado e psd está disponível.
 
 interface GearPaneProps {
   rec: Recommendation;
   db: GameDB | null;
+  /** Parsed player save data — needed by SlotCompare. Optional for backward compat
+   *  with smoke tests that don't pass it; when absent, a loading placeholder is shown. */
+  psd?: PlayerSaveData | null;
 }
 
-export function GearPane({ rec, db }: GearPaneProps) {
+export function GearPane({ rec, db, psd }: GearPaneProps) {
   const party = rec.meta.party;
 
   // Default: carry hero se definido, senão o primeiro da party
@@ -34,6 +38,12 @@ export function GearPane({ rec, db }: GearPaneProps) {
     if (selectedHero == null) return [];
     return rec.gear.slots.filter((s) => s.heroKey === selectedHero);
   }, [rec.gear.slots, selectedHero]);
+
+  // Slot result for the selected slot (null if none selected)
+  const selectedSlotResult = useMemo(() => {
+    if (selectedSlot == null) return null;
+    return heroSlots.find((s) => s.slot === selectedSlot) ?? null;
+  }, [heroSlots, selectedSlot]);
 
   const swapCount = rec.gear.swaps.length;
   const emptyJewelryCount = rec.gear.emptyJewelry.length;
@@ -113,7 +123,7 @@ export function GearPane({ rec, db }: GearPaneProps) {
         </div>
       </section>
 
-      {/* ── Slot grid + placeholder comparador (Task 3) ────────────────────── */}
+      {/* ── Slot grid + comparador ──────────────────────────────────────────── */}
       {selectedHero != null && (
         <div className="flex flex-col gap-3 md:flex-row md:items-start">
           {/* 10-slot grid para o herói selecionado */}
@@ -124,20 +134,25 @@ export function GearPane({ rec, db }: GearPaneProps) {
             db={db}
           />
 
-          {/* Placeholder do comparador — Task 3 */}
-          {selectedSlot != null && (
-            <aside
-              aria-label="Comparador de itens"
-              className="flex w-full flex-col items-center justify-center rounded-xl border border-line/50 bg-surface-2 p-8 text-center md:w-80"
-            >
-              <p className="text-[13px] font-medium text-dim">
-                Comparador de itens
-              </p>
-              <p className="mt-1 text-[11px] text-dim/60">
-                Em breve (Tarefa 3)
-              </p>
-            </aside>
-          )}
+          {/* Comparador de slot — Task 3 */}
+          {selectedSlot != null &&
+            (selectedSlotResult != null && db != null && psd != null && selectedHero != null ? (
+              <SlotCompare
+                rec={rec}
+                db={db}
+                psd={psd}
+                heroKey={selectedHero}
+                slotResult={selectedSlotResult}
+              />
+            ) : (
+              <aside
+                aria-label="Comparador de itens"
+                className="flex w-full flex-col items-center justify-center rounded-xl border border-line/50 bg-surface-2 p-8 text-center md:w-80"
+              >
+                <p className="text-[13px] font-medium text-dim">Comparador de itens</p>
+                <p className="mt-1 text-[11px] text-dim/60">Carregando...</p>
+              </aside>
+            ))}
         </div>
       )}
     </div>

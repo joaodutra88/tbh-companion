@@ -63,10 +63,11 @@ interface ActivePaneProps {
   tab: string;
   rec: NonNullable<ReturnType<typeof useRecommendation>["rec"]>;
   db: ReturnType<typeof useRecommendation>["db"];
+  psd: ReturnType<typeof useRecommendation>["psd"];
   recalibrate: ReturnType<typeof useRecommendation>["recalibrate"];
 }
 
-function ActivePane({ tab, rec, db, recalibrate }: ActivePaneProps) {
+function ActivePane({ tab, rec, db, psd, recalibrate }: ActivePaneProps) {
   if (tab === "farm") {
     return <FarmPane rec={rec} db={db} recalibrate={recalibrate} />;
   }
@@ -77,7 +78,7 @@ function ActivePane({ tab, rec, db, recalibrate }: ActivePaneProps) {
     return <RunesPane rec={rec} />;
   }
   if (tab === "gear") {
-    return <GearPane rec={rec} db={db} />;
+    return <GearPane rec={rec} db={db} psd={psd} />;
   }
   return <Overview rec={rec} db={db} />;
 }
@@ -85,13 +86,13 @@ function ActivePane({ tab, rec, db, recalibrate }: ActivePaneProps) {
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function Home() {
-  const { status, rec, db, recalibrate } = useRecommendation();
+  const { status, rec, db, psd, recalibrate } = useRecommendation();
   const [tab, setTab] = useState("overview");
 
   return (
     <AppShell statusSlot={<StatusSlot />} activeTab={tab} onTabChange={setTab} ready={status === "ready"}>
       {status === "ready" && rec ? (
-        <ActivePane tab={tab} rec={rec} db={db} recalibrate={recalibrate} />
+        <ActivePane tab={tab} rec={rec} db={db} psd={psd} recalibrate={recalibrate} />
       ) : (
         <ConnectSave />
       )}
