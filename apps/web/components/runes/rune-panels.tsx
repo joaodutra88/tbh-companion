@@ -5,6 +5,7 @@ import { ShoppingCart, Route } from "lucide-react";
 import type { Recommendation } from "@tbh/engine";
 import { fmt, fmtK, localized } from "@/lib/format";
 import { statLabel } from "@/lib/stat-labels";
+import { dedupeByNameAndSt } from "@/lib/rune-dedupe";
 
 // ── RunePanels ────────────────────────────────────────────────────────────────
 // Painéis laterais da aba Runas:
@@ -26,37 +27,10 @@ interface RunePanelsProps {
 const MAX_ALMOST_FREE = 8;
 const MAX_ROI = 6;
 
-// ── Dedupe helper ─────────────────────────────────────────────────────────────
-// When multiple rune nodes share the same (localized name + st), keep the first
-// (cheapest/best-ranked, since lists are pre-sorted) and track the count.
-// This is display-only — the engine is not touched.
-interface WithCount {
-  count: number;
-}
-
-function dedupeByNameAndSt<T extends { name: unknown; st?: string | null }>(
-  list: T[],
-): (T & WithCount)[] {
-  const seen = new Map<string, number>(); // dedupKey → index in result
-  const result: (T & WithCount)[] = [];
-  for (const item of list) {
-    const key = `${localized(item.name)}|${item.st ?? ""}`;
-    const idx = seen.get(key);
-    if (idx !== undefined) {
-      result[idx]!.count++;
-    } else {
-      seen.set(key, result.length);
-      result.push({ ...item, count: 1 });
-    }
-  }
-  return result;
-}
 
 export function RunePanels({ rec, onSelect }: RunePanelsProps) {
-  const almostFree = dedupeByNameAndSt(
-    rec.runes.almostFree.slice(0, MAX_ALMOST_FREE),
-  );
-  const roi = dedupeByNameAndSt(rec.runeROI.slice(0, MAX_ROI));
+  const almostFree = dedupeByNameAndSt(rec.runes.almostFree).slice(0, MAX_ALMOST_FREE);
+  const roi = dedupeByNameAndSt(rec.runeROI).slice(0, MAX_ROI);
   const { totalCost, totalPower, gold } = rec.goldPlan;
   const cart = dedupeByNameAndSt(rec.goldPlan.cart);
   const firstDpsPath = rec.runes.firstDpsPath;
