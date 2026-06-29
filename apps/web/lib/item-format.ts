@@ -138,3 +138,48 @@ const GRADE_FALLBACK: GradeStyle = {
 export function gradeStyle(grade: string): GradeStyle {
   return GRADE_MAP[grade as GearGrade] ?? GRADE_FALLBACK;
 }
+
+// ── gearTypeLabel ─────────────────────────────────────────────────────────────
+
+// PT-BR labels for all 16 db.gearTypes keys + 4 jewelry slot types (AMULET/EARING/RING/BRACER
+// appear in SlotResult.gearType but are not in db.gearTypes).
+const GEAR_TYPE_LABELS: Record<string, string> = {
+  // Main weapons (slot 0 — class-specific)
+  SWORD: "Espada",
+  BOW: "Arco",
+  STAFF: "Cajado",
+  SCEPTER: "Cetro",
+  CROSSBOW: "Besta",
+  AXE: "Machado",
+  // Off-hand (slot 1 — class-specific)
+  SHIELD: "Escudo",
+  ARROW: "Flecha",
+  ORB: "Orbe",
+  TOME: "Grimório",
+  BOLT: "Virote",
+  HATCHET: "Machadinha",
+  // Armor (slots 2-5)
+  HELMET: "Elmo",
+  ARMOR: "Armadura",
+  GLOVES: "Luvas",
+  BOOTS: "Botas",
+  // Jewelry (slots 6-9)
+  AMULET: "Amuleto",
+  EARING: "Brinco",
+  RING: "Anel",
+  BRACER: "Bracelete",
+};
+
+/**
+ * PT-BR display label for a gear slot type (gearType string from the engine).
+ * Falls back to title-cased key (underscore → space) for any unmapped value,
+ * so raw UPPERCASE tokens never reach the UI.
+ */
+export function gearTypeLabel(gearType: string): string {
+  const mapped = GEAR_TYPE_LABELS[gearType];
+  if (mapped !== undefined) return mapped;
+  return gearType
+    .split("_")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    .join(" ");
+}

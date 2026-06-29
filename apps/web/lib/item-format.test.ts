@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import type { GameDB } from "@tbh/engine";
-import { itemIcon, gearName, gradeStyle, GEAR_GRADES } from "./item-format";
+import { itemIcon, gearName, gradeStyle, gearTypeLabel, GEAR_GRADES } from "./item-format";
 
 // ── Fixtures ──────────────────────────────────────────────────────────────────
 
@@ -109,5 +109,47 @@ describe("gradeStyle — all 10 grades are defined", () => {
     const labels = GEAR_GRADES.map((g) => gradeStyle(g).label);
     const unique = new Set(labels);
     expect(unique.size).toBe(GEAR_GRADES.length);
+  });
+});
+
+// ── gearTypeLabel ─────────────────────────────────────────────────────────────
+
+describe("gearTypeLabel", () => {
+  it("maps main-weapon keys to PT-BR", () => {
+    expect(gearTypeLabel("SWORD")).toBe("Espada");
+    expect(gearTypeLabel("BOW")).toBe("Arco");
+    expect(gearTypeLabel("STAFF")).toBe("Cajado");
+    expect(gearTypeLabel("SCEPTER")).toBe("Cetro");
+    expect(gearTypeLabel("CROSSBOW")).toBe("Besta");
+    expect(gearTypeLabel("AXE")).toBe("Machado");
+  });
+
+  it("maps off-hand keys to PT-BR", () => {
+    expect(gearTypeLabel("SHIELD")).toBe("Escudo");
+    expect(gearTypeLabel("ARROW")).toBe("Flecha");
+    expect(gearTypeLabel("ORB")).toBe("Orbe");
+    expect(gearTypeLabel("TOME")).toBe("Grimório");
+    expect(gearTypeLabel("BOLT")).toBe("Virote");
+    expect(gearTypeLabel("HATCHET")).toBe("Machadinha");
+  });
+
+  it("maps armor and jewelry keys to PT-BR", () => {
+    expect(gearTypeLabel("HELMET")).toBe("Elmo");
+    expect(gearTypeLabel("ARMOR")).toBe("Armadura");
+    expect(gearTypeLabel("GLOVES")).toBe("Luvas");
+    expect(gearTypeLabel("BOOTS")).toBe("Botas");
+    expect(gearTypeLabel("AMULET")).toBe("Amuleto");
+    expect(gearTypeLabel("EARING")).toBe("Brinco");
+    expect(gearTypeLabel("RING")).toBe("Anel");
+    expect(gearTypeLabel("BRACER")).toBe("Bracelete");
+  });
+
+  it("humanizes unmapped keys via title-case (no raw UPPERCASE)", () => {
+    expect(gearTypeLabel("DUAL_BLADE")).toBe("Dual Blade");
+    expect(gearTypeLabel("WAND")).toBe("Wand");
+  });
+
+  it("returns empty string for empty input (no crash)", () => {
+    expect(gearTypeLabel("")).toBe("");
   });
 });

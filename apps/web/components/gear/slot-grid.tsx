@@ -2,7 +2,7 @@
 
 import React from "react";
 import type { GameDB, GearAdvice } from "@tbh/engine";
-import { itemIcon, gearName, gradeStyle } from "@/lib/item-format";
+import { itemIcon, gearName, gradeStyle, gearTypeLabel } from "@/lib/item-format";
 
 // PT-BR slot labels (index 0..9)
 // Slots 0-1: class-specific weapons; 2-5: universal armor; 6-9: jewelry (inherent-only stats)
@@ -43,7 +43,11 @@ export function SlotGrid({ slots, selectedSlot, onSlotSelect, db }: SlotGridProp
           const current = slotResult?.current ?? null;
           const isEmpty = slotResult?.empty ?? true;
           const isSelected = selectedSlot === idx;
-          const label = SLOT_LABELS[idx] ?? `Slot ${idx}`;
+          const label =
+            idx === 0 || idx === 1
+              ? gearTypeLabel(slotResult?.gearType ?? "")
+              : (SLOT_LABELS[idx] ?? `Slot ${idx}`);
+          const gs = current?.grade != null ? gradeStyle(current.grade) : null;
 
           const cellClass = [
             "relative flex flex-col items-center gap-1 rounded-xl border p-3 cursor-pointer transition-colors",
@@ -105,9 +109,9 @@ export function SlotGrid({ slots, selectedSlot, onSlotSelect, db }: SlotGridProp
                   </div>
 
                   {/* Grade badge */}
-                  {current.grade != null && (
-                    <span className={gradeStyle(current.grade).className}>
-                      {gradeStyle(current.grade).label}
+                  {gs != null && (
+                    <span className={gs.className}>
+                      {gs.label}
                     </span>
                   )}
 

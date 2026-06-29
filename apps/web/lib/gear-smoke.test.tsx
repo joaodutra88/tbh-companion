@@ -56,7 +56,7 @@ describe("GearPane (smoke)", () => {
   it("clicar num herói diferente muda o herói ativo", async () => {
     const { rec, db } = await demoSetup();
     const party = rec.meta.party;
-    if (party.length < 2) return; // party com 1 herói: pular
+    expect(party.length).toBeGreaterThanOrEqual(2);
 
     const { container } = render(<GearPane rec={rec} db={db} />);
 
@@ -78,7 +78,7 @@ describe("GearPane (smoke)", () => {
     expect(nowActive!.getAttribute("data-heroki")).toBe(secondHk);
   });
 
-  it("grid de slots renderiza exatamente 10 cells após trocar herói", async () => {
+  it("grid de slots renderiza exatamente 10 cells", async () => {
     const { rec, db } = await demoSetup();
     const { container } = render(<GearPane rec={rec} db={db} />);
 
@@ -117,7 +117,7 @@ describe("GearPane (smoke)", () => {
   it("trocar de herói reseta o slot selecionado (comparador desaparece)", async () => {
     const { rec, db } = await demoSetup();
     const party = rec.meta.party;
-    if (party.length < 2) return; // pular se apenas 1 herói
+    expect(party.length).toBeGreaterThanOrEqual(2);
 
     const { container } = render(<GearPane rec={rec} db={db} />);
 
@@ -202,7 +202,7 @@ describe("SlotGrid (smoke)", () => {
     expect(notSelected.length).toBe(0);
   });
 
-  it("todos os 10 labels PT-BR estão presentes no grid", async () => {
+  it("labels PT-BR dos slots de armadura/joia (2-9) estão presentes no grid", async () => {
     const { rec, db } = await demoSetup();
     const party = rec.meta.party;
     const firstHk = party[0];
@@ -214,8 +214,8 @@ describe("SlotGrid (smoke)", () => {
     );
 
     const text = container.textContent ?? "";
-    // Labels esperados (case-insensitive porque são uppercase via CSS, mas o DOM tem o texto original)
-    const expected = ["Arma", "Off-hand", "Elmo", "Armadura", "Luvas", "Botas", "Amuleto", "Brinco", "Anel", "Bracelete"];
+    // Slots 0-1 usam gearTypeLabel dinâmico (depende da classe do herói); slots 2-9 têm labels estáticos.
+    const expected = ["Elmo", "Armadura", "Luvas", "Botas", "Amuleto", "Brinco", "Anel", "Bracelete"];
     for (const label of expected) {
       expect(text).toContain(label);
     }
