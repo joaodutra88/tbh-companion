@@ -179,6 +179,14 @@ export function RunesPane({ rec }: RunesPaneProps) {
 
       {/* Árvore + painel lateral (detalhe + recomendadas + plano de gasto) */}
       <div className="flex flex-col gap-3 md:flex-row md:items-start">
+        {/* Skip-link para usuários de teclado pularem a árvore de 197 nós */}
+        <a
+          href="#rune-side-panel"
+          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:border focus:border-teal/60 focus:bg-surface focus:px-3 focus:py-1.5 focus:text-[13px] focus:text-teal focus:shadow-sm"
+        >
+          Pular a árvore de runas
+        </a>
+
         {/* Árvore — ocupa o espaço restante */}
         <div className="relative min-h-[440px] flex-1">
           <RuneTree
@@ -195,7 +203,7 @@ export function RunesPane({ rec }: RunesPaneProps) {
         </div>
 
         {/* Painel lateral: detalhe do nó + recomendadas + plano de gasto */}
-        <div className="flex w-full flex-col gap-3 md:w-80">
+        <div id="rune-side-panel" className="flex w-full flex-col gap-3 md:w-80">
           <RuneDetail node={selected} />
           <RunePanels rec={rec} onSelect={setSelectedKey} />
         </div>

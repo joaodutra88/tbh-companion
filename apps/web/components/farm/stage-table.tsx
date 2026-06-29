@@ -168,7 +168,7 @@ export function StageTable({ rows, currentKey, recommendKey, db }: StageTablePro
                       ? "bg-gold/[0.07] hover:bg-gold/[0.1]"
                       : isCur
                         ? "bg-teal/[0.06] hover:bg-teal/[0.09]"
-                        : "hover:bg-surface-2/60",
+                        : "odd:bg-surface-2/30 hover:bg-surface-2/60",
                   ].join(" ")}
                 >
                   <td className="px-3 py-2">

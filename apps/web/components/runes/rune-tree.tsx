@@ -21,6 +21,9 @@ import { useEntityLocale } from "@/lib/entity-locale";
 type RuneTreeData = Recommendation["runeTree"];
 type RuneNodeData = RuneTreeData["nodes"][string];
 
+/** Statuses whose nodes are actionable (keyboard-focusable + Enter/Space selects). */
+const ACTIONABLE_STATUSES = new Set<string>(["recommended", "almostfree", "owned"]);
+
 export interface RuneBounds {
   minX: number;
   maxX: number;
@@ -109,6 +112,18 @@ const RuneNodeEl = React.memo(function RuneNodeEl({
     onSelect?.(nodeKey);
   }, [draggedRef, onSelect, nodeKey]);
 
+  const isActionable = onSelect != null && ACTIONABLE_STATUSES.has(n.status);
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<SVGGElement>): void => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        onSelect?.(nodeKey);
+      }
+    },
+    [onSelect, nodeKey],
+  );
+
   // Esmaecimento: filtro de categoria tem prioridade sobre o orçamento.
   const groupOpacity = dimmed ? 0.14 : unaffordable ? 0.42 : 1;
 
@@ -122,7 +137,9 @@ const RuneNodeEl = React.memo(function RuneNodeEl({
       opacity={groupOpacity}
       transform={`translate(${n.x} ${n.y})`}
       onClick={onSelect ? handleClick : undefined}
+      onKeyDown={isActionable ? handleKeyDown : undefined}
       role={onSelect ? "button" : undefined}
+      tabIndex={isActionable ? 0 : undefined}
       aria-label={localized(n.name, locale) || `Runa ${nodeKey}`}
     >
       {/* SVG title — native tooltip + screen-reader name */}
@@ -356,7 +373,7 @@ export function RuneTree({
         className={`block h-full w-full touch-none select-none ${
           dragging ? "cursor-grabbing" : "cursor-grab"
         }`}
-        role="img"
+        role="application"
         aria-label="Árvore de runas"
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}

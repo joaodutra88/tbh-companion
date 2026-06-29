@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { SlidersHorizontal, Loader2, Plus, X } from "lucide-react";
 import type { FarmRow, GameDB, RecommendOpts } from "@tbh/engine";
 import { StageName } from "@/components/stage-name";
@@ -37,6 +37,14 @@ export function Calibration({ current, rows, db, recalibrate }: CalibrationProps
   const [extraStr, setExtraStr] = useState("");
   const [showExtra, setShowExtra] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [calibrated, setCalibrated] = useState(false);
+  const calTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (calTimerRef.current != null) clearTimeout(calTimerRef.current);
+    };
+  }, []);
 
   const curName = current ? (db?.stages[current.key]?.label ?? current.label) : null;
   const extraRow = rows.find((r) => r.key === extraKey) ?? null;
@@ -62,6 +70,10 @@ export function Calibration({ current, rows, db, recalibrate }: CalibrationProps
     setBusy(true);
     try {
       await recalibrate({ clearSec, clearSamples });
+      // Feedback breve de sucesso — some em 2 s (reduced-motion: aparece/some sem animação)
+      setCalibrated(true);
+      if (calTimerRef.current != null) clearTimeout(calTimerRef.current);
+      calTimerRef.current = setTimeout(() => setCalibrated(false), 2000);
     } finally {
       setBusy(false);
     }
@@ -177,15 +189,26 @@ export function Calibration({ current, rows, db, recalibrate }: CalibrationProps
               </button>
             )}
 
-            <button
-              type="button"
-              onClick={onCalibrate}
-              disabled={!canSubmit}
-              className="mt-1 inline-flex items-center justify-center gap-2 rounded-md bg-gold px-3 py-2 text-[13px] font-semibold text-bg transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              {busy && <Loader2 className="size-3.5 animate-spin" aria-hidden="true" />}
-              {busy ? "Calibrando…" : "Calibrar"}
-            </button>
+            <div className="mt-1 flex items-center gap-3">
+              <button
+                type="button"
+                onClick={onCalibrate}
+                disabled={!canSubmit}
+                className="inline-flex items-center justify-center gap-2 rounded-md bg-gold px-3 py-2 text-[13px] font-semibold text-bg transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                {busy && <Loader2 className="size-3.5 animate-spin" aria-hidden="true" />}
+                {busy ? "Calibrando…" : "Calibrar"}
+              </button>
+              {/* Live region: always in DOM; text appears/clears without animation
+                  (global reduced-motion reset disables transitions when set). */}
+              <span
+                aria-live="polite"
+                aria-atomic="true"
+                className="text-[13px] font-medium text-teal"
+              >
+                {calibrated ? "Calibrado!" : ""}
+              </span>
+            </div>
           </div>
         </>
       )}
