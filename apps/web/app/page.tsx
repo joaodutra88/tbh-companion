@@ -6,6 +6,7 @@ import { ConnectSave } from "@/components/connect-save";
 import { Overview } from "@/components/overview/overview";
 import { FarmPane } from "@/components/farm/farm-pane";
 import { ChestsPane } from "@/components/chests/chests-pane";
+import { RunesPane } from "@/components/runes/runes-pane";
 import { useRecommendation } from "@/lib/recommendation-context";
 
 // ── Status slot (top-bar right side) ─────────────────────────────────────────
@@ -68,6 +69,9 @@ function ActivePane({ tab, rec, db, recalibrate }: ActivePaneProps) {
   }
   if (tab === "baus") {
     return <ChestsPane rec={rec} />;
+  }
+  if (tab === "runas") {
+    return <RunesPane rec={rec} />;
   }
   return <Overview rec={rec} db={db} />;
 }
