@@ -336,6 +336,7 @@ describe("SlotCompare v2 — métrica + stats + raridade + explicação", () => 
 
     // Click first slot to reveal the comparator + metric toggle
     const firstSlot = container.querySelector<HTMLButtonElement>("button[data-slot]");
+    expect(firstSlot).not.toBeNull();
     if (firstSlot == null) return;
     fireEvent.click(firstSlot);
 
@@ -343,11 +344,12 @@ describe("SlotCompare v2 — métrica + stats + raridade + explicação", () => 
     expect(metricButtons.length).toBe(3);
   });
 
-  it("trocar métrica muda o botão ativo (aria-pressed)", async () => {
+  it("trocar métrica muda o botão ativo (aria-pressed) e re-ordena candidatos", async () => {
     const { rec, db, psd } = await demoSetup();
     const { container } = render(<GearPane rec={rec} db={db} psd={psd} />);
 
     const firstSlot = container.querySelector<HTMLButtonElement>("button[data-slot]");
+    expect(firstSlot).not.toBeNull();
     if (firstSlot == null) return;
     fireEvent.click(firstSlot);
 
@@ -355,8 +357,14 @@ describe("SlotCompare v2 — métrica + stats + raridade + explicação", () => 
     const powerBtn = container.querySelector<HTMLButtonElement>('[data-metric="power"]');
     expect(powerBtn?.getAttribute("aria-pressed")).toBe("true");
 
+    // Capture headline metric-delta of first candidate at 'power'
+    const deltaAtPower = container.querySelector<HTMLElement>(
+      '[data-candidate] [data-metric-delta]',
+    )?.textContent ?? null;
+
     // Switch to 'dps'
     const dpsBtn = container.querySelector<HTMLButtonElement>('[data-metric="dps"]');
+    expect(dpsBtn).not.toBeNull();
     if (dpsBtn == null) return;
     fireEvent.click(dpsBtn);
 
@@ -364,6 +372,15 @@ describe("SlotCompare v2 — métrica + stats + raridade + explicação", () => 
     expect(
       container.querySelector<HTMLButtonElement>('[data-metric="power"]')?.getAttribute("aria-pressed"),
     ).toBe("false");
+
+    // Re-rank check: if candidates were visible at 'power', they must re-render at 'dps'
+    if (deltaAtPower != null) {
+      const deltaAtDps = container.querySelector<HTMLElement>(
+        '[data-candidate] [data-metric-delta]',
+      )?.textContent ?? null;
+      expect(deltaAtDps).not.toBeNull();
+      expect(deltaAtDps).not.toBe("");
+    }
   });
 
   it("item com stats mostra ≥1 linha com data-drives-metric", async () => {

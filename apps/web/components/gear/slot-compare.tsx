@@ -124,7 +124,7 @@ export function SlotCompare({
           <div className="flex flex-col gap-2">
             <ItemRow item={slotResult.best} db={db} size="md" metric={metric} />
             <div className="grid grid-cols-3 gap-1 rounded-lg border border-line bg-surface p-2">
-              <DeltaCell label="ΔPOWER" value={slotResult.best.dPower} gold />
+              <DeltaCell label="ΔPOWER" value={computed?.bestDelta?.dPower ?? slotResult.best.dPower} gold />
               {computed?.bestDelta != null ? (
                 <>
                   <DeltaCell label="ΔDPS" value={computed.bestDelta.dDps} />
@@ -198,11 +198,11 @@ export function SlotCompare({
                     </span>
                     <div className="flex gap-1">
                       {otherDeltas.map((od) => (
-                        <span
-                          key={od.label}
-                          className={`font-mono text-[10px] tabular-nums ${od.d.colorClass}`}
-                        >
-                          {od.d.text}
+                        <span key={od.label} className="flex items-baseline gap-0.5">
+                          <span className={`font-mono text-[10px] tabular-nums ${od.d.colorClass}`}>
+                            {od.d.text}
+                          </span>
+                          <span className="text-[9px] text-dim">{od.label}</span>
                         </span>
                       ))}
                     </div>
@@ -379,7 +379,7 @@ function DeltaCell({
       <span className="text-[9px] uppercase tracking-[0.1em] text-dim">{label}</span>
       <span
         className={`font-mono tabular-nums ${gold === true ? "text-[14px] font-bold text-gold" : `text-[12px] ${d.colorClass}`}`}
-        data-dpow
+        data-dpow={gold === true ? true : undefined}
       >
         {gold === true && value > 0 ? `+${Math.round(value).toLocaleString("pt-BR")}` : d.text}
       </span>
