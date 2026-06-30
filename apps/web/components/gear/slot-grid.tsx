@@ -62,6 +62,8 @@ export function SlotGrid({ slots, selectedSlot, onSlotSelect, db }: SlotGridProp
                 : isEmpty
                   ? "border-dashed border-line/50 bg-surface-2/50 hover:border-line hover:bg-surface-2"
                   : "border-line bg-surface-2 hover:border-gold/40 hover:bg-surface",
+            // Teal ring coexists with gold shadow (--tw-ring-shadow + --tw-shadow compose)
+            isUpgrade ? "ring-1 ring-teal/50" : "",
           ].join(" ");
 
           const ariaLabel = current
@@ -84,10 +86,10 @@ export function SlotGrid({ slots, selectedSlot, onSlotSelect, db }: SlotGridProp
                 {label}
               </span>
 
-              {/* Upgrade badge — shown when slot has a recommended swap */}
+              {/* Upgrade badge — canto superior direito para não deslocar o layout */}
               {isUpgrade && (
                 <span
-                  className="flex items-center gap-0.5 rounded bg-teal px-1.5 py-0.5 text-[8px] font-bold uppercase leading-none tracking-[0.08em] text-bg"
+                  className="absolute top-1 right-1 rounded bg-teal px-1.5 py-0.5 text-[9px] font-bold uppercase leading-none tracking-[0.08em] text-bg"
                   data-upgrade-badge="true"
                   aria-label="upgrade disponível"
                 >
