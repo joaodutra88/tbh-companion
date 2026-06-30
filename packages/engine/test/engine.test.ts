@@ -286,7 +286,12 @@ describe("power delta (gear)", () => {
   it("weapon swap raises POWER, leaves EHP unchanged", () => {
     const rangerSave = (psd.heroSaveDatas ?? []).find((h) => h.heroKey === 201)!;
     const d = powerDelta(db, rangerSave, psd, 0, 314141);
-    ok(d.dPower > 1000, `swapping Ranger bow->314141 raises POWER by ${Math.round(d.dPower * 100) / 100} (>1000)`);
+    // Valor corrigido: 314141 tem `AttackSpeed MULTIPLICATIVE 160`. O copilot original (e o
+    // oráculo herdado dele) escalava MULTIPLICATIVE por /100 → ×2,6 → dPower inflado (>1000).
+    // A escala correta do jogo é /1000 → ×1,16, e o swap sobe POWER ~601. Esta asserção
+    // diverge do copilot DE PROPÓSITO (copilot estava errado aqui — ver o fix do divisor em
+    // stats.ts `aggregate`, confirmado pelo tooltip in-game: MULTIPLICATIVE 171 = +17,1%).
+    approxPct(d.dPower, 601, 5, `swapping Ranger bow->314141 raises POWER by ${Math.round(d.dPower * 100) / 100} (~601, divisor /1000 corrigido)`);
     ok(Math.abs(d.dEhp) < 1, "pure weapon swap leaves EHP unchanged");
   });
 });

@@ -188,7 +188,10 @@ export function aggregate(c: Contrib): Record<string, number> {
     const flat = (mods.FLAT ?? []).reduce((a, b) => a + b, 0);
     const add = (mods.ADDITIVE ?? []).reduce((a, b) => a + b, 0);
     let mult = 1;
-    for (const v of mods.MULTIPLICATIVE ?? []) mult *= 1 + v / 100;
+    // MULTIPLICATIVE usa a mesma escala /1000 dos percentuais do jogo (PERCENT_DIVISOR).
+    // Ex.: AttackSpeed MULTIPLICATIVE 171 = +17,1% (×1,171), não +171%. Só AttackSpeed e
+    // CastSpeed usam MULTIPLICATIVE no DB; ambos nessa escala.
+    for (const v of mods.MULTIPLICATIVE ?? []) mult *= 1 + v / PARAMS.PERCENT_DIVISOR;
     out[st] = flat * (1 + add / PARAMS.PERCENT_DIVISOR) * mult;
   }
   return out;
@@ -401,6 +404,16 @@ export function powerDelta(
     }
   };
   if (oldKey) for (const [st, mt, v] of gearStatLines(db, oldKey)) rm(st, mt, v);
+  // Ao trocar a peça, os EnchantData do gear antigo saem junto. Espelha o add de
+  // collect() (gearStatLines + enchants); sem remover os enchants aqui eles vazam no
+  // estado `next` e inflam o delta do candidato.
+  if (oldUid)
+    for (const e of ism[oldUid]?.EnchantData ?? []) {
+      if (e && e.StatModKey != null) {
+        const sm = db.statMods[`${e.StatModKey}:${e.Tier}`];
+        if (sm) rm(sm.st, sm.mt, e.Value || 0);
+      }
+    }
   if (newGearKey)
     for (const [st, mt, v] of gearStatLines(db, newGearKey)) {
       const byMt = (c[st] ??= {});
