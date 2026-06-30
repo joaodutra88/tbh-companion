@@ -50,6 +50,12 @@ export function GearPane({ rec, db, psd }: GearPaneProps) {
   const swapCount = rec.gear.swaps.length;
   const emptyJewelryCount = rec.gear.emptyJewelry.length;
 
+  // Upgrades específicos do herói selecionado (slots marcados com ↑ no grid)
+  const heroSwapCount = useMemo(() => {
+    if (selectedHero == null) return 0;
+    return rec.gear.swaps.filter((s) => s.heroKey === selectedHero).length;
+  }, [rec.gear.swaps, selectedHero]);
+
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-4 px-4 py-5 md:px-6 md:py-6">
       {/* ── Cabeçalho ─────────────────────────────────────────────────────── */}
@@ -59,9 +65,13 @@ export function GearPane({ rec, db, psd }: GearPaneProps) {
             Equipamento
           </h2>
           <p className="mt-0.5 text-[12px] text-dim tabular-nums">
-            {swapCount > 0
-              ? `${swapCount} ${swapCount === 1 ? "troca recomendada" : "trocas recomendadas"}`
-              : "Nenhuma troca recomendada"}
+            {selectedHero != null
+              ? heroSwapCount > 0
+                ? `${heroSwapCount} ${heroSwapCount === 1 ? "upgrade" : "upgrades"} neste herói — marcados com ↑`
+                : "Nenhum upgrade para este herói"
+              : swapCount > 0
+                ? `${swapCount} ${swapCount === 1 ? "troca recomendada" : "trocas recomendadas"}`
+                : "Nenhuma troca recomendada"}
             {emptyJewelryCount > 0
               ? ` · ${emptyJewelryCount} ${emptyJewelryCount === 1 ? "joia vazia" : "joias vazias"}`
               : null}

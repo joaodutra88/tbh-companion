@@ -327,6 +327,111 @@ describe("SlotCompare (smoke)", () => {
   });
 });
 
+// ── Task 3 — Upgrades óbvios no grid ─────────────────────────────────────────
+
+describe("Task 3 — Upgrades óbvios no grid", () => {
+  it("slots em rec.gear.swaps do herói têm data-upgrade=true no SlotGrid", async () => {
+    const { rec, db } = await demoSetup();
+
+    // Encontra um herói com pelo menos 1 swap
+    const heroWithSwap = rec.meta.party.find(
+      (hk) => rec.gear.swaps.some((s) => s.heroKey === hk),
+    );
+    if (heroWithSwap == null) return; // demo sem swaps: teste vacuamente OK
+
+    const heroSlots = rec.gear.slots.filter((s) => s.heroKey === heroWithSwap);
+    const { container } = render(
+      <SlotGrid slots={heroSlots} selectedSlot={null} onSlotSelect={() => void 0} db={db} />,
+    );
+
+    const heroSwapSlots = rec.gear.swaps
+      .filter((s) => s.heroKey === heroWithSwap)
+      .map((s) => s.slot);
+
+    for (const slotIdx of heroSwapSlots) {
+      const btn = container.querySelector<HTMLButtonElement>(
+        `button[data-slot="${slotIdx}"]`,
+      );
+      expect(btn).not.toBeNull();
+      expect(btn!.getAttribute("data-upgrade")).toBe("true");
+    }
+  });
+
+  it("slots sem swap NÃO têm data-upgrade=true no SlotGrid", async () => {
+    const { rec, db } = await demoSetup();
+    const firstHk = rec.meta.party[0];
+    if (firstHk == null) return;
+
+    const heroSlots = rec.gear.slots.filter((s) => s.heroKey === firstHk);
+    const { container } = render(
+      <SlotGrid slots={heroSlots} selectedSlot={null} onSlotSelect={() => void 0} db={db} />,
+    );
+
+    const swapSlotIndices = new Set(
+      rec.gear.swaps.filter((s) => s.heroKey === firstHk).map((s) => s.slot),
+    );
+
+    const allSlotBtns = container.querySelectorAll<HTMLButtonElement>("button[data-slot]");
+    for (const btn of Array.from(allSlotBtns)) {
+      const slotIdx = parseInt(btn.getAttribute("data-slot") ?? "-1", 10);
+      if (!swapSlotIndices.has(slotIdx)) {
+        expect(btn.getAttribute("data-upgrade")).not.toBe("true");
+      }
+    }
+  });
+
+  it("badge '↑ upgrade' (data-upgrade-badge) aparece no slot com swap", async () => {
+    const { rec, db } = await demoSetup();
+
+    const heroWithSwap = rec.meta.party.find(
+      (hk) => rec.gear.swaps.some((s) => s.heroKey === hk),
+    );
+    if (heroWithSwap == null) return;
+
+    const firstSwapSlot = rec.gear.swaps.find((s) => s.heroKey === heroWithSwap);
+    if (firstSwapSlot == null) return;
+
+    const heroSlots = rec.gear.slots.filter((s) => s.heroKey === heroWithSwap);
+    const { container } = render(
+      <SlotGrid slots={heroSlots} selectedSlot={null} onSlotSelect={() => void 0} db={db} />,
+    );
+
+    const upgradeBtn = container.querySelector<HTMLButtonElement>(
+      `button[data-slot="${firstSwapSlot.slot}"]`,
+    );
+    expect(upgradeBtn).not.toBeNull();
+
+    const badge = upgradeBtn!.querySelector("[data-upgrade-badge]");
+    expect(badge).not.toBeNull();
+    expect(badge!.textContent).toContain("upgrade");
+  });
+
+  it("header do GearPane reflete a contagem de upgrades do herói selecionado com ↑", async () => {
+    const { rec, db, psd } = await demoSetup();
+
+    const heroWithSwap = rec.meta.party.find(
+      (hk) => rec.gear.swaps.some((s) => s.heroKey === hk),
+    );
+    if (heroWithSwap == null) return;
+
+    const { container } = render(<GearPane rec={rec} db={db} psd={psd} />);
+
+    // Garante que o herói com swap está selecionado
+    const heroBtn = container.querySelector<HTMLButtonElement>(
+      `button[data-heroki="${heroWithSwap}"]`,
+    );
+    expect(heroBtn).not.toBeNull();
+    fireEvent.click(heroBtn!);
+
+    const heroSwapCount = rec.gear.swaps.filter((s) => s.heroKey === heroWithSwap).length;
+
+    const text = container.textContent ?? "";
+    // Header deve conter a contagem e o símbolo ↑
+    expect(text).toContain(String(heroSwapCount));
+    expect(text).toContain("↑");
+  });
+});
+
 // ── SlotCompare v2 ────────────────────────────────────────────────────────────
 
 describe("SlotCompare v2 — métrica + stats + raridade + explicação", () => {

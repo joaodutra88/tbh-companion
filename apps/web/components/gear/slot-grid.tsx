@@ -47,6 +47,7 @@ export function SlotGrid({ slots, selectedSlot, onSlotSelect, db }: SlotGridProp
             idx === 0 || idx === 1
               ? gearTypeLabel(slotResult?.gearType ?? "")
               : (SLOT_LABELS[idx] ?? `Slot ${idx}`);
+          const isUpgrade = slotResult?.worth === true;
           const gs = current?.grade != null ? gradeStyle(current.grade) : null;
 
           const cellClass = [
@@ -54,9 +55,13 @@ export function SlotGrid({ slots, selectedSlot, onSlotSelect, db }: SlotGridProp
             "focus:outline-none focus-visible:ring-2 focus-visible:ring-gold",
             isSelected
               ? "border-gold bg-gold/10 shadow-[0_0_0_1px_rgba(232,176,75,0.4)]"
-              : isEmpty
-                ? "border-dashed border-line/50 bg-surface-2/50 hover:border-line hover:bg-surface-2"
-                : "border-line bg-surface-2 hover:border-gold/40 hover:bg-surface",
+              : isUpgrade
+                ? isEmpty
+                  ? "border-teal/50 border-dashed bg-teal/5 hover:border-teal hover:bg-teal/10"
+                  : "border-teal/60 bg-teal/5 hover:border-teal hover:bg-surface"
+                : isEmpty
+                  ? "border-dashed border-line/50 bg-surface-2/50 hover:border-line hover:bg-surface-2"
+                  : "border-line bg-surface-2 hover:border-gold/40 hover:bg-surface",
           ].join(" ");
 
           const ariaLabel = current
@@ -72,11 +77,23 @@ export function SlotGrid({ slots, selectedSlot, onSlotSelect, db }: SlotGridProp
               aria-pressed={isSelected}
               aria-label={ariaLabel}
               data-slot={idx}
+              data-upgrade={isUpgrade ? "true" : undefined}
             >
               {/* Slot label */}
               <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-dim">
                 {label}
               </span>
+
+              {/* Upgrade badge — shown when slot has a recommended swap */}
+              {isUpgrade && (
+                <span
+                  className="flex items-center gap-0.5 rounded bg-teal px-1.5 py-0.5 text-[8px] font-bold uppercase leading-none tracking-[0.08em] text-bg"
+                  data-upgrade-badge="true"
+                  aria-label="upgrade disponível"
+                >
+                  ↑ upgrade
+                </span>
+              )}
 
               {current != null && !isEmpty ? (
                 <>
