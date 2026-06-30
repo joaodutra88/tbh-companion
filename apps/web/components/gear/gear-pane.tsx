@@ -5,11 +5,12 @@ import type { Recommendation, GameDB, PlayerSaveData } from "@tbh/engine";
 import { heroIcon, heroName } from "@/lib/format";
 import { SlotGrid } from "./slot-grid";
 import { SlotCompare } from "./slot-compare";
+import { GEAR_METRICS, type GearMetricId } from "@/lib/gear-stats";
 
 // ── GearPane ──────────────────────────────────────────────────────────────────
 // Aba de equipamento: hero picker (party) + grid de 10 slots do herói selecionado.
-// Estado de herói + slot selecionados vive aqui; o comparador (SlotCompare) é
-// renderizado no aside quando um slot é selecionado e psd está disponível.
+// Estado de herói + slot + métrica selecionados vive aqui; o comparador (SlotCompare)
+// é renderizado no aside quando um slot é selecionado e psd está disponível.
 
 interface GearPaneProps {
   rec: Recommendation;
@@ -27,6 +28,7 @@ export function GearPane({ rec, db, psd }: GearPaneProps) {
 
   const [selectedHero, setSelectedHero] = useState<number | null>(defaultHero);
   const [selectedSlot, setSelectedSlot] = useState<number | null>(null);
+  const [metric, setMetric] = useState<GearMetricId>("power");
 
   function handleHeroSelect(hk: number): void {
     setSelectedHero(hk);
@@ -48,6 +50,12 @@ export function GearPane({ rec, db, psd }: GearPaneProps) {
   const swapCount = rec.gear.swaps.length;
   const emptyJewelryCount = rec.gear.emptyJewelry.length;
 
+  // Upgrades específicos do herói selecionado (slots marcados com ↑ no grid)
+  const heroSwapCount = useMemo(() => {
+    if (selectedHero == null) return 0;
+    return rec.gear.swaps.filter((s) => s.heroKey === selectedHero).length;
+  }, [rec.gear.swaps, selectedHero]);
+
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-4 px-4 py-5 md:px-6 md:py-6">
       {/* ── Cabeçalho ─────────────────────────────────────────────────────── */}
@@ -57,9 +65,13 @@ export function GearPane({ rec, db, psd }: GearPaneProps) {
             Equipamento
           </h2>
           <p className="mt-0.5 text-[12px] text-dim tabular-nums">
-            {swapCount > 0
-              ? `${swapCount} ${swapCount === 1 ? "troca recomendada" : "trocas recomendadas"}`
-              : "Nenhuma troca recomendada"}
+            {selectedHero != null
+              ? heroSwapCount > 0
+                ? `${heroSwapCount} ${heroSwapCount === 1 ? "upgrade" : "upgrades"} neste herói — marcados com ↑`
+                : "Nenhum upgrade para este herói"
+              : swapCount > 0
+                ? `${swapCount} ${swapCount === 1 ? "troca recomendada" : "trocas recomendadas"}`
+                : "Nenhuma troca recomendada"}
             {emptyJewelryCount > 0
               ? ` · ${emptyJewelryCount} ${emptyJewelryCount === 1 ? "joia vazia" : "joias vazias"}`
               : null}
@@ -134,16 +146,45 @@ export function GearPane({ rec, db, psd }: GearPaneProps) {
             db={db}
           />
 
-          {/* Comparador de slot — Task 3 */}
+          {/* Seletor de métrica + comparador de slot */}
           {selectedSlot != null &&
             (selectedSlotResult != null && db != null && psd != null && selectedHero != null ? (
-              <SlotCompare
-                rec={rec}
-                db={db}
-                psd={psd}
-                heroKey={selectedHero}
-                slotResult={selectedSlotResult}
-              />
+              <div className="flex w-full flex-col gap-2 md:w-80">
+                {/* Seletor de métrica (3 botões war-table) */}
+                <div
+                  role="group"
+                  aria-label="Métrica de comparação"
+                  className="flex gap-1"
+                >
+                  {GEAR_METRICS.map((m) => (
+                    <button
+                      key={m.id}
+                      type="button"
+                      aria-pressed={metric === m.id}
+                      onClick={() => setMetric(m.id)}
+                      data-metric={m.id}
+                      className={[
+                        "flex-1 rounded-lg border px-2 py-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] transition-colors",
+                        "focus:outline-none focus-visible:ring-2 focus-visible:ring-teal",
+                        metric === m.id
+                          ? "border-teal bg-teal/10 text-teal"
+                          : "border-line bg-surface-2 text-dim hover:border-teal/40 hover:text-text",
+                      ].join(" ")}
+                    >
+                      {m.label}
+                    </button>
+                  ))}
+                </div>
+
+                <SlotCompare
+                  rec={rec}
+                  db={db}
+                  psd={psd}
+                  heroKey={selectedHero}
+                  slotResult={selectedSlotResult}
+                  metric={metric}
+                />
+              </div>
             ) : (
               <aside
                 aria-label="Comparador de itens"

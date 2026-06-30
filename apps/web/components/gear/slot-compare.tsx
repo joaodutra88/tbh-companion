@@ -1,12 +1,25 @@
 "use client";
 
 import React, { useMemo } from "react";
-import type { GameDB, GearAdvice, PlayerSaveData, Recommendation } from "@tbh/engine";
+import type { GameDB, GearAdvice, PlayerSaveData, Recommendation, PowerDelta } from "@tbh/engine";
 import { heroSaveMap, powerDelta, runeContrib, refStageLevel } from "@tbh/engine";
-import { itemIcon, gearName, gradeStyle, gearTypeLabel } from "@/lib/item-format";
+import { itemIcon, gearName, gradeStyle, gearTypeLabel, rarityStyle } from "@/lib/item-format";
 import { scoreOwnedCandidates } from "@/lib/gear-candidates";
+import {
+  GEAR_METRICS,
+  type GearMetricId,
+  gearStatRows,
+  statDrivesMetric,
+} from "@/lib/gear-stats";
 
 type SlotResult = GearAdvice["slots"][number];
+
+// Typed lookup: metric id → PowerDelta field
+const METRIC_FIELD: Record<GearMetricId, "dPower" | "dDps" | "dEhp"> = {
+  power: "dPower",
+  dps: "dDps",
+  def: "dEhp",
+};
 
 interface SlotCompareProps {
   rec: Recommendation;
@@ -14,6 +27,8 @@ interface SlotCompareProps {
   psd: PlayerSaveData;
   heroKey: number;
   slotResult: SlotResult;
+  /** Metric driving rank + highlight. Defaults to 'power'. */
+  metric?: GearMetricId;
 }
 
 function formatDelta(v: number): { text: string; colorClass: string } {
@@ -29,6 +44,7 @@ export function SlotCompare({
   psd,
   heroKey,
   slotResult,
+  metric = "power",
 }: SlotCompareProps): React.ReactElement {
   const computed = useMemo(() => {
     const hsm = heroSaveMap(psd);
@@ -44,7 +60,8 @@ export function SlotCompare({
         ? powerDelta(db, hs, psd, slotResult.slot, slotResult.best.itemKey, rstats, sl)
         : null;
 
-    const candidates = scoreOwnedCandidates(
+    // All owned candidates (initially sorted by dPower by scoreOwnedCandidates)
+    const rawCandidates = scoreOwnedCandidates(
       db,
       psd,
       hs,
@@ -52,19 +69,16 @@ export function SlotCompare({
       slotResult.gearType,
     );
 
-    // Identify exactly the first non-equipped copy of the best item so only one
-    // row gets the MELHOR pill (duplicates of the same itemKey are excluded).
-    const best = slotResult.best;
-    const bestCandidate =
-      best != null
-        ? candidates.find(
-            (c) => String(c.itemKey) === String(best.itemKey) && c.uniqueId !== curUid,
-          )
-        : undefined;
-    const bestUid: number | string | null = bestCandidate?.uniqueId ?? null;
+    // Re-sort by chosen metric
+    const field = METRIC_FIELD[metric];
+    const candidates = [...rawCandidates].sort((a, b) => b.delta[field] - a.delta[field]);
+
+    // Best by metric = first non-equipped candidate
+    const bestByMetricCandidate = candidates.find((c) => c.uniqueId !== curUid);
+    const bestUid: number | string | null = bestByMetricCandidate?.uniqueId ?? null;
 
     return { hs, bestDelta, candidates, curUid, bestUid };
-  }, [db, psd, heroKey, slotResult]);
+  }, [db, psd, heroKey, slotResult, metric]);
 
   const isRecommendedSwap = rec.gear.swaps.some(
     (s) => s.heroKey === heroKey && s.slot === slotResult.slot,
@@ -95,7 +109,7 @@ export function SlotCompare({
           Atual
         </p>
         {slotResult.current != null ? (
-          <ItemRow item={slotResult.current} db={db} size="md" />
+          <ItemRow item={slotResult.current} db={db} size="md" metric={metric} />
         ) : (
           <p className="text-[12px] text-dim/60">Slot vazio</p>
         )}
@@ -108,9 +122,9 @@ export function SlotCompare({
         </p>
         {slotResult.best != null ? (
           <div className="flex flex-col gap-2">
-            <ItemRow item={slotResult.best} db={db} size="md" />
+            <ItemRow item={slotResult.best} db={db} size="md" metric={metric} />
             <div className="grid grid-cols-3 gap-1 rounded-lg border border-line bg-surface p-2">
-              <DeltaCell label="ΔPOWER" value={slotResult.best.dPower} gold />
+              <DeltaCell label="ΔPOWER" value={computed?.bestDelta?.dPower ?? slotResult.best.dPower} gold />
               {computed?.bestDelta != null ? (
                 <>
                   <DeltaCell label="ΔDPS" value={computed.bestDelta.dDps} />
@@ -123,6 +137,10 @@ export function SlotCompare({
                 </>
               )}
             </div>
+            {/* Explanation note */}
+            {computed?.bestDelta != null && (
+              <ExplanationLine bestDelta={computed.bestDelta} metric={metric} />
+            )}
           </div>
         ) : (
           <p className="text-[12px] font-medium text-teal">
@@ -141,7 +159,16 @@ export function SlotCompare({
             {computed.candidates.map((c) => {
               const isEquipped = c.uniqueId === computed.curUid;
               const isBest = computed.bestUid != null && c.uniqueId === computed.bestUid;
-              const dpow = formatDelta(c.delta.dPower);
+
+              // Chosen metric delta (headline, emphasized)
+              const metricField = METRIC_FIELD[metric];
+              const metricDelta = formatDelta(c.delta[metricField]);
+
+              // Other two deltas (smaller)
+              const otherDeltas = GEAR_METRICS.filter((m) => m.id !== metric).map((m) => ({
+                label: m.label,
+                d: formatDelta(c.delta[METRIC_FIELD[m.id]]),
+              }));
 
               return (
                 <div
@@ -155,18 +182,31 @@ export function SlotCompare({
                       {gearName(c.itemKey)}
                     </p>
                     <div className="mt-0.5 flex flex-wrap items-center gap-1">
-                      <GradeBadge grade={db.items[c.itemKey]?.grade} />
+                      <RarityBadge grade={db.items[c.itemKey]?.grade} />
                       {isEquipped && <Pill label="equipado" color="gold" />}
                       {isBest && <Pill label="melhor" color="teal" />}
                       {!isEquipped && !isBest && <Pill label="tenho" color="dim" />}
                     </div>
                   </div>
-                  <span
-                    className={`shrink-0 font-mono text-[13px] font-bold tabular-nums ${dpow.colorClass}`}
-                    data-dpow
-                  >
-                    {dpow.text}
-                  </span>
+                  {/* Metric delta (headline) + other deltas (smaller) */}
+                  <div className="flex shrink-0 flex-col items-end gap-0.5">
+                    <span
+                      className={`font-mono text-[13px] font-bold tabular-nums ${metricDelta.colorClass}`}
+                      data-metric-delta
+                    >
+                      {metricDelta.text}
+                    </span>
+                    <div className="flex gap-1">
+                      {otherDeltas.map((od) => (
+                        <span key={od.label} className="flex items-baseline gap-0.5">
+                          <span className={`font-mono text-[10px] tabular-nums ${od.d.colorClass}`}>
+                            {od.d.text}
+                          </span>
+                          <span className="text-[9px] text-dim">{od.label}</span>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               );
             })}
@@ -190,38 +230,69 @@ function ItemRow({
   item,
   db,
   size,
+  metric,
 }: {
   item: DecodedItem;
   db: GameDB;
   size: "md";
+  /** When provided, shows stat lines with metric-driven highlight. */
+  metric?: GearMetricId;
 }): React.ReactElement {
   const icon = itemIcon(item.itemKey, db);
   const imgSize = size === "md" ? "size-10" : "size-8";
+  const stats = metric != null ? gearStatRows(db, item.itemKey) : [];
 
   return (
-    <div className="flex items-center gap-2">
-      {icon !== "" ? (
-        <img
-          src={icon}
-          alt=""
-          aria-hidden="true"
-          className={`${imgSize} shrink-0 rounded object-contain`}
-          onError={(e) => {
-            (e.currentTarget as HTMLImageElement).style.display = "none";
-          }}
-        />
-      ) : (
-        <div className={`${imgSize} shrink-0 rounded bg-surface`} />
-      )}
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-[13px] font-medium text-text">{gearName(item.itemKey)}</p>
-        <div className="mt-0.5 flex items-center gap-1.5">
-          <GradeBadge grade={item.grade} />
-          {item.level != null && (
-            <span className="font-mono text-[11px] tabular-nums text-dim">Lv.{item.level}</span>
-          )}
+    <div className="flex flex-col gap-1.5">
+      <div className="flex items-center gap-2">
+        {icon !== "" ? (
+          <img
+            src={icon}
+            alt=""
+            aria-hidden="true"
+            className={`${imgSize} shrink-0 rounded object-contain`}
+            onError={(e) => {
+              (e.currentTarget as HTMLImageElement).style.display = "none";
+            }}
+          />
+        ) : (
+          <div className={`${imgSize} shrink-0 rounded bg-surface`} />
+        )}
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-[13px] font-medium text-text">{gearName(item.itemKey)}</p>
+          <div className="mt-0.5 flex items-center gap-1.5">
+            <RarityBadge grade={item.grade} />
+            {item.level != null && (
+              <span className="font-mono text-[11px] tabular-nums text-dim">Lv.{item.level}</span>
+            )}
+          </div>
         </div>
       </div>
+
+      {/* Stat lines (current + best items only) */}
+      {stats.length > 0 && metric != null && (
+        <div className="flex flex-col gap-0.5 rounded-lg border border-line bg-surface px-2 py-1.5">
+          {stats.map((row, i) => {
+            const drives = statDrivesMetric(row.statKey, metric);
+            return (
+              <div
+                key={`${row.statKey}-${i}`}
+                className={`flex items-center justify-between text-[10px] ${
+                  drives ? "font-semibold text-teal" : "text-dim"
+                }`}
+                data-drives-metric={drives ? "true" : undefined}
+              >
+                <span>{row.label}</span>
+                <span className="font-mono tabular-nums">
+                  {row.isPercent
+                    ? `+${row.value.toFixed(1)}%`
+                    : `+${row.value.toLocaleString("pt-BR")}`}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
@@ -249,10 +320,16 @@ function CandidateIcon({
   );
 }
 
-function GradeBadge({ grade }: { grade?: string }): React.ReactElement | null {
+/** Rarity badge using exact game hex colors (inline style) + PT-BR label. */
+function RarityBadge({ grade }: { grade?: string }): React.ReactElement | null {
   if (!grade) return null;
-  const gs = gradeStyle(grade);
-  return <span className={gs.className}>{gs.label}</span>;
+  const rs = rarityStyle(grade);
+  const label = gradeStyle(grade).label;
+  return (
+    <span className={rs.className} style={rs.style}>
+      {label}
+    </span>
+  );
 }
 
 function Pill({
@@ -302,10 +379,53 @@ function DeltaCell({
       <span className="text-[9px] uppercase tracking-[0.1em] text-dim">{label}</span>
       <span
         className={`font-mono tabular-nums ${gold === true ? "text-[14px] font-bold text-gold" : `text-[12px] ${d.colorClass}`}`}
-        data-dpow
+        data-dpow={gold === true ? true : undefined}
       >
         {gold === true && value > 0 ? `+${Math.round(value).toLocaleString("pt-BR")}` : d.text}
       </span>
     </div>
+  );
+}
+
+/** Plain-language swap summary leading with the chosen metric. */
+function ExplanationLine({
+  bestDelta,
+  metric,
+}: {
+  bestDelta: PowerDelta;
+  metric: GearMetricId;
+}): React.ReactElement | null {
+  const deltaParts = [
+    { id: "power" as const, label: "POWER", value: bestDelta.dPower },
+    { id: "dps" as const, label: "DPS", value: bestDelta.dDps },
+    { id: "def" as const, label: "EHP", value: bestDelta.dEhp },
+  ];
+
+  // Lead with chosen metric, then the other two
+  const chosen = deltaParts.find((p) => p.id === metric);
+  const others = deltaParts.filter((p) => p.id !== metric);
+  const ordered = chosen != null ? [chosen, ...others] : others;
+  const visible = ordered.filter((p) => Math.round(p.value) !== 0);
+
+  if (visible.length === 0) return null;
+
+  return (
+    <p className="text-[11px]" data-swap-note>
+      <span className="font-semibold text-dim">Troca:</span>{" "}
+      {visible.map((p, i) => {
+        const d = formatDelta(p.value);
+        return (
+          <React.Fragment key={p.id}>
+            {i > 0 && <span className="mx-0.5 text-dim/60">·</span>}
+            <span
+              className={`font-mono tabular-nums ${d.colorClass}${p.id === metric ? " font-bold" : ""}`}
+            >
+              {d.text}
+            </span>{" "}
+            <span className="text-dim/80">{p.label}</span>
+          </React.Fragment>
+        );
+      })}
+    </p>
   );
 }
