@@ -239,10 +239,15 @@ export const autoElementOf = (db: GameDB, heroKey: number | string): string => {
 
 export function dmgMult(s: Stats, delivery: string, element?: string): number {
   const elemPct = s[ELEM_KEY[element ?? ""] || "PhysicalDamagePercent"] || 0;
+  // Dano elemental (*DamagePercent) usa a escala /1000 do jogo (PERCENT_DIVISOR), igual a
+  // crit/CDR/AS — confirmado in-game. Ex.: PhysicalDamagePercent 150 = +15%, não +150%.
+  // Multistrike e INC_KEY (Increase*Damage) seguem /100 por ora: o INC_KEY hoje agrega 0
+  // (ADDITIVE sem base FLAT — Finding A, pendente de confirmação in-game) e a escala do
+  // Multistrike não foi verificada; não mexer sem evidência.
   return (
     (1 + (s.Multistrike || 0) / 100) *
     (1 + (s[INC_KEY[delivery] ?? ""] || 0) / 100) *
-    (1 + elemPct / 100)
+    (1 + elemPct / PARAMS.PERCENT_DIVISOR)
   );
 }
 

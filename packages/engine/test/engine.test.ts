@@ -51,8 +51,11 @@ describe("power (corrected stage-dependent armor formula @ stage level 23)", () 
   it("hero POWER + party DPS + carry", () => {
     approxPct(H(201).power, 307, 10, "Ranger 201 POWER");
     approxPct(H(401).power, 579, 10, "Priest 401 POWER");
-    approxPct(H(301).power, 405, 10, "Sorcerer 301 POWER");
-    approxPct(r.meta.partyDPS, 967, 10, "party DPS");
+    // Sorcerer e partyDPS corrigidos pelo fix do dano elemental (dmgMult /100→/1000): o
+    // Sorcerer (caster AOE elemental) era super-avaliado. 405→~334, partyDPS 967→~852.
+    // Valores antigos herdados do copilot com o bug; escala /1000 confirmada in-game.
+    approxPct(H(301).power, 334, 10, "Sorcerer 301 POWER (elemental /1000)");
+    approxPct(r.meta.partyDPS, 852, 10, "party DPS (elemental /1000)");
     eq(r.meta.carryHero, 201, "damage carry = Ranger 201");
     ok((r.meta.carryShare ?? 0) > 0.4, "carry share > 40% (Ranger is the plurality carry; correct crit ends the old fake monopoly)");
     approxPct(H(201).stats.AttackSpeed ?? 0, 245, 5, "Ranger AttackSpeed (raw)");
