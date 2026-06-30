@@ -326,3 +326,110 @@ describe("SlotCompare (smoke)", () => {
     expect(hasBestMsg).toBe(true);
   });
 });
+
+// ── SlotCompare v2 ────────────────────────────────────────────────────────────
+
+describe("SlotCompare v2 — métrica + stats + raridade + explicação", () => {
+  it("seletor de métrica no GearPane renderiza 3 botões data-metric", async () => {
+    const { rec, db, psd } = await demoSetup();
+    const { container } = render(<GearPane rec={rec} db={db} psd={psd} />);
+
+    // Click first slot to reveal the comparator + metric toggle
+    const firstSlot = container.querySelector<HTMLButtonElement>("button[data-slot]");
+    if (firstSlot == null) return;
+    fireEvent.click(firstSlot);
+
+    const metricButtons = container.querySelectorAll("[data-metric]");
+    expect(metricButtons.length).toBe(3);
+  });
+
+  it("trocar métrica muda o botão ativo (aria-pressed)", async () => {
+    const { rec, db, psd } = await demoSetup();
+    const { container } = render(<GearPane rec={rec} db={db} psd={psd} />);
+
+    const firstSlot = container.querySelector<HTMLButtonElement>("button[data-slot]");
+    if (firstSlot == null) return;
+    fireEvent.click(firstSlot);
+
+    // Default is 'power'
+    const powerBtn = container.querySelector<HTMLButtonElement>('[data-metric="power"]');
+    expect(powerBtn?.getAttribute("aria-pressed")).toBe("true");
+
+    // Switch to 'dps'
+    const dpsBtn = container.querySelector<HTMLButtonElement>('[data-metric="dps"]');
+    if (dpsBtn == null) return;
+    fireEvent.click(dpsBtn);
+
+    expect(dpsBtn.getAttribute("aria-pressed")).toBe("true");
+    expect(
+      container.querySelector<HTMLButtonElement>('[data-metric="power"]')?.getAttribute("aria-pressed"),
+    ).toBe("false");
+  });
+
+  it("item com stats mostra ≥1 linha com data-drives-metric", async () => {
+    const { rec, db, psd } = await demoSetup();
+    const party = rec.meta.party;
+
+    let found = false;
+    outer: for (const hk of party) {
+      for (const slotResult of rec.gear.slots.filter((s) => s.heroKey === hk)) {
+        if (slotResult.current == null && slotResult.best == null) continue;
+        const { container } = render(
+          <SlotCompare rec={rec} db={db} psd={psd} heroKey={hk} slotResult={slotResult} metric="power" />,
+        );
+        const rows = container.querySelectorAll("[data-drives-metric]");
+        cleanup();
+        if (rows.length > 0) {
+          found = true;
+          break outer;
+        }
+      }
+    }
+    expect(found).toBe(true);
+  });
+
+  it("stat que impulsiona DPS tem data-drives-metric=true ao selecionar métrica dps", async () => {
+    const { rec, db, psd } = await demoSetup();
+    const party = rec.meta.party;
+
+    let found = false;
+    outer: for (const hk of party) {
+      for (const slotResult of rec.gear.slots.filter((s) => s.heroKey === hk)) {
+        if (slotResult.current == null && slotResult.best == null) continue;
+        const { container } = render(
+          <SlotCompare rec={rec} db={db} psd={psd} heroKey={hk} slotResult={slotResult} metric="dps" />,
+        );
+        const highlighted = container.querySelector('[data-drives-metric="true"]');
+        cleanup();
+        if (highlighted != null) {
+          found = true;
+          break outer;
+        }
+      }
+    }
+    expect(found).toBe(true);
+  });
+
+  it("nota 'Troca:' aparece quando há best item com delta não-zero", async () => {
+    const { rec, db, psd } = await demoSetup();
+    const party = rec.meta.party;
+
+    let found = false;
+    outer: for (const hk of party) {
+      for (const slotResult of rec.gear.slots.filter(
+        (s) => s.heroKey === hk && s.best != null,
+      )) {
+        const { container } = render(
+          <SlotCompare rec={rec} db={db} psd={psd} heroKey={hk} slotResult={slotResult} metric="power" />,
+        );
+        const note = container.querySelector("[data-swap-note]");
+        cleanup();
+        if (note != null) {
+          found = true;
+          break outer;
+        }
+      }
+    }
+    expect(found).toBe(true);
+  });
+});
