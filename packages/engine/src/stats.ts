@@ -409,7 +409,7 @@ export function powerDelta(
   // estado `next` e inflam o delta do candidato.
   if (oldUid)
     for (const e of ism[oldUid]?.EnchantData ?? []) {
-      if (e && e.StatModKey != null) {
+      if (e && e.StatModKey) {
         const sm = db.statMods[`${e.StatModKey}:${e.Tier}`];
         if (sm) rm(sm.st, sm.mt, e.Value || 0);
       }
