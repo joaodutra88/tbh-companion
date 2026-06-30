@@ -25,10 +25,44 @@ const mono = JetBrains_Mono({
   display: "swap",
 });
 
+const SITE_URL = "https://tbh-companion-web.vercel.app";
+
 export const metadata: Metadata = {
-  title: "TBH Companion",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "TBH Companion — Task Bar Hero optimizer, rune tree & gear compare",
+    template: "%s · TBH Companion",
+  },
   description:
-    "Optimization companion for the idle-RPG TBH: Task Bar Hero — reads your save locally in the browser.",
+    "Free client-side companion for TBH: Task Bar Hero. Farm optimizer, 197-node rune tree, gear comparator and a save reader — your save never leaves your browser. No login, no server.",
+  applicationName: "TBH Companion",
+  keywords: [
+    "Task Bar Hero",
+    "TBH",
+    "taskbar hero optimizer",
+    "tbh farming calculator",
+    "task bar hero rune tree",
+    "tbh gear compare",
+    "tbh save analyzer",
+    "idle rpg",
+    "steam game companion",
+  ],
+  openGraph: {
+    type: "website",
+    url: SITE_URL,
+    siteName: "TBH Companion",
+    title: "TBH Companion — Task Bar Hero optimizer, rune tree & gear compare",
+    description:
+      "Farm optimizer, 197-node rune tree, gear comparator & save reader for TBH: Task Bar Hero. 100% client-side — your save never leaves your browser.",
+    locale: "pt_BR",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "TBH Companion — Task Bar Hero optimizer",
+    description:
+      "Farm optimizer, rune tree, gear comparator & save reader for TBH: Task Bar Hero. Client-side, free, no login.",
+  },
+  robots: { index: true, follow: true },
 };
 
 export default function RootLayout({

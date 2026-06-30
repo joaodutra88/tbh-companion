@@ -1,3 +1,11 @@
+<!--
+  DRAFT de lançamento — NÃO substitui o README.md real ainda.
+  João revisa, ajusta e só então promove para a raiz do repo.
+  Termos buscáveis (SEO) em EN propositalmente: "taskbar hero optimizer",
+  "task bar hero rune tree", "tbh farming calculator", "tbh gear compare",
+  "tbh save analyzer", "tbh steam market prices". UI/chrome continua PT-BR.
+-->
+
 <div align="center">
 
 # TBH Companion
@@ -9,7 +17,7 @@ Otimizador de farm, árvore de runas com 197 nós, comparador de gear e leitor d
 
 [![Abrir o app](https://img.shields.io/badge/▶_Abrir_o_app-tbh--companion--web.vercel.app-2ea043?style=for-the-badge)](https://tbh-companion-web.vercel.app)
 
-[![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg?style=flat-square)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg?style=flat-square)](../../LICENSE)
 [![CI](https://img.shields.io/github/actions/workflow/status/joaodutra88/tbh-companion/ci.yml?branch=main&style=flat-square&label=CI)](https://github.com/joaodutra88/tbh-companion/actions/workflows/ci.yml)
 [![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js)](https://nextjs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
@@ -40,7 +48,8 @@ Tudo reescrito em TypeScript, empacotado num monorepo Next.js + Turborepo e publ
 
 - **Sua save nunca sai do browser.** Todo o processamento é client-side. Não há upload,
   não há banco de dados, não há conta pra criar.
-- **Sem telemetria, sem analytics, sem cookies de rastreio.** O TBH Companion não te observa.
+- **Sem telemetria, sem analytics, sem cookies de rastreio.** Diferente de várias wikis e
+  ferramentas do ecossistema, o TBH Companion não te observa.
 - **Grátis e open-source.** Código aberto sob licença MIT, créditos explícitos às fontes.
 - **Nada pra instalar.** Abre numa aba do navegador e funciona.
 
@@ -54,7 +63,7 @@ Tudo na cara, em abas. O que **já funciona hoje**:
 | **Farm** | Otimizador de stage calibrado pela **sua taxa real de ouro/segundo**, com auto-calibração, timer de idle e projeções de 1 / 3 / 5 / 8 horas. | task bar hero best stage to farm, tbh farming calculator, afk farming |
 | **Baús** | Timers de auto-abertura de baús usando os cooldowns reais lidos da sua save. | tbh chest timers |
 | **Runas** | **Árvore de runas interativa com 197 nós**, por categoria, mostrando a runa mais barata comprável agora. | taskbar hero rune tree, tbh rune order guide |
-| **Gear** | Comparador de gear por slot com **delta de POWER / DPS / EHP** — mostra na hora se uma peça é upgrade. | tbh gear compare, task bar hero best in slot |
+| **Gear** | Comparador de gear por slot com **delta de POWER** — mostra na hora se uma peça é upgrade. | tbh gear compare, task bar hero best in slot |
 
 Recursos transversais:
 
@@ -89,13 +98,25 @@ Estas três abas aparecem no app marcadas como **"em breve"** e ainda **não** e
 4. **Sem o jogo aberto?** Clique em **Demo** pra explorar com uma save de exemplo.
 5. Navegue pelas abas **Overview → Farm → Baús → Runas → Gear**. Nada é enviado pra lugar nenhum.
 
+## Screenshots
+
+> _Placeholders — adicionar PNGs reais em `screenshots/` antes do lançamento._
+
+| Overview | Farm | Runas |
+|----------|------|-------|
+| ![Overview — coach + roster](../../screenshots/overview.png) | ![Farm — melhor stage + projeções](../../screenshots/farm.png) | ![Runas — árvore de 197 nós](../../screenshots/runes.png) |
+
+| Gear | Conectar save |
+|------|---------------|
+| ![Gear — comparador por slot](../../screenshots/gear.png) | ![Conectar save — local](../../screenshots/connect.png) |
+
 ## FAQ
 
 - **Qual o melhor stage pra farmar?** → Abra a aba **Farm**. Ela calibra pela sua taxa real de
   ouro/segundo e mostra o stage ótimo + projeção de ganho por hora.
 - **Quais runas comprar primeiro?** → Abra a aba **Runas**. A árvore de 197 nós destaca a runa
   mais barata comprável e o caminho de DPS.
-- **Vale trocar / vender esse gear?** → Abra a aba **Gear** pro delta de POWER/DPS/EHP por slot.
+- **Vale trocar / vender esse gear?** → Abra a aba **Gear** pro delta de POWER por slot.
   O conselheiro de venda com preços do Steam Market chega nas abas Vender/Loja (em breve).
 - **Vocês veem minha save?** → Não. Roda tudo no seu navegador. Sem upload, sem servidor, sem analytics.
 - **É pago?** → Não. Grátis e open-source (MIT).
@@ -108,6 +129,8 @@ Estas três abas aparecem no app marcadas como **"em breve"** e ainda **não** e
 - **UI:** [Tailwind CSS](https://tailwindcss.com) + componentes shadcn/Base UI
 - **Testes:** [Vitest](https://vitest.dev) (oráculo de 103 asserções no `@tbh/engine`)
 - **Deploy:** [Vercel](https://vercel.com)
+
+Pacotes:
 
 ```
 tbh-companion/
@@ -133,7 +156,7 @@ pnpm -F web dev     # sobe o Next.js → http://localhost:3000
 ## Créditos
 
 Este projeto existe porque outras pessoas da comunidade construíram coisas boas primeiro.
-Crédito de verdade, com link e licença (detalhes em [`CREDITS.md`](CREDITS.md)):
+Crédito de verdade, com link e licença:
 
 - **[shigake](https://github.com/shigake)** — criador do **[tbh-copilot](https://github.com/shigake/tbh-copilot)**,
   o motor de otimização client-side cujo `engine.js` foi portado fielmente pro `@tbh/engine`. MIT.
@@ -143,21 +166,24 @@ Crédito de verdade, com link e licença (detalhes em [`CREDITS.md`](CREDITS.md)
   · Site: [eusouogiba.com](https://eusouogiba.com)
 - **[taskbarhero.wiki](https://taskbarhero.wiki)** — wiki da comunidade, fonte das fórmulas do
   jogo e das tabelas de stage/gear usadas no engine.
-- **Nugem Studio / TesseractStudio** — criadores do jogo **TBH: Task Bar Hero** e donos dos
-  sprites/assets usados em `apps/web/public/game/`.
+
+Detalhes completos em [`docs/launch/CREDITS.draft.md`](./CREDITS.draft.md) e na [`LICENSE`](../../LICENSE).
 
 ## Contribuindo
 
 PRs são bem-vindos. O básico:
 
 1. `pnpm install` na raiz (monorepo pnpm + Turborepo).
-2. `pnpm test` precisa passar (oráculo do engine).
+2. `pnpm test` precisa passar (oráculo de 103 asserções do engine).
 3. `pnpm typecheck` precisa passar (TypeScript estrito).
 4. Abra um PR descrevendo a mudança.
 
+> _TODO de lançamento: adicionar `CONTRIBUTING.md`, templates de issue em `.github/ISSUE_TEMPLATE/`
+> e um `CHANGELOG.md`._
+
 ## Licença
 
-[MIT](LICENSE). Partes derivadas do tbh-copilot e do giba-steam-market, ambos MIT.
+[MIT](../../LICENSE). Partes derivadas do tbh-copilot e do giba-steam-market, ambos MIT.
 
 ## Disclaimer
 
