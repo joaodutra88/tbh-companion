@@ -16,6 +16,16 @@
 - **Fase 4b-i.1 Clareza** (`a988722`): dificuldade visível; ícones de runa; card "próxima runa" + statLabel + dedupe; **nomes em inglês + seletor de idioma**.
 - **Fase 4b-i.2 Design/A11y/shadcn** (`b241e8a`): h1/contraste/roles/estados; shadcn Tabs/Select/Tooltip; zebra/teclado/microinterações.
 - **Fase 4b-ii Gear** (`9d7e3cb`): aba Gear — hero picker + grid 10 slots + comparador (atual vs best + candidatos owned por powerDelta, pills).
+- **Gear Comparador v2** (`18f275a`): seletor métrica Poder/DPS/Defesa + stats do item + cor de raridade do jogo + explicação da troca + badge "↑ upgrade" nos slots.
+- **Lançamento** (`991b4f5`): README/CREDITS/LICENSE públicos + OG/keywords + topics.
+- **Fix cálculo MULTIPLICATIVE** (`c5c8d5a`): escala /100→/1000 (game-verified "17% More Attack Speed") → Arcano>Lendário; + enchant leak no powerDelta; + display +17,1%.
+
+---
+
+## 🐞 CORREÇÕES DE CÁLCULO DO ENGINE (achadas 2026-06-30, PENDENTES)
+> Descobertas debugando o comparador de gear (mesma classe do bug do attack speed). Tocam a matemática de dano do engine validado → blast radius no oráculo (reconciliar como no assert do swap). Convenção /1000 confirmada in-game. Detalhe na memória `tbh-engine-calc-scale`.
+- **B (confiança ALTA):** `dmgMult` (`stats.ts:~243`) usa `/100` p/ dano elemental (`Physical/Fire/Cold/Lightning/ChaosDamagePercent`, FLAT 100–150 de passivas/enchants). Deveria ser `/1000` (igual crit/CDR/AS). Hoje passiva de 150 dá ×2,5; certo ×1,15. **10× forte.**
+- **A (confiança média-alta):** `Increase{Melee,Projectile,AOE,Summon}Damage` são ADDITIVE-only sem base FLAT → `aggregate` faz `0×(1+add)=0` → **ignorados**. Gear DIVINE "+800% Projectile Damage" não conta nada. Precisa decidir como agregar stat-modificador-puro + 1 print confirmando que o jogo aplica.
 
 ---
 
