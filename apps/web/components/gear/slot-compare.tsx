@@ -10,6 +10,7 @@ import {
   type GearMetricId,
   gearStatRows,
   statDrivesMetric,
+  formatGearStatValue,
 } from "@/lib/gear-stats";
 
 type SlotResult = GearAdvice["slots"][number];
@@ -284,9 +285,7 @@ function ItemRow({
               >
                 <span>{row.label}</span>
                 <span className="font-mono tabular-nums">
-                  {row.isPercent
-                    ? `+${row.value.toFixed(1)}%`
-                    : `+${row.value.toLocaleString("pt-BR")}`}
+                  {formatGearStatValue(row.value, row.mt)}
                 </span>
               </div>
             );

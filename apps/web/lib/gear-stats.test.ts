@@ -1,6 +1,12 @@
 import { describe, it, expect } from "vitest";
 import { loadGameDB } from "@tbh/game-data";
-import { gearStatRows, statDrivesMetric, GEAR_METRICS, metricTargets } from "./gear-stats";
+import {
+  gearStatRows,
+  statDrivesMetric,
+  GEAR_METRICS,
+  metricTargets,
+  formatGearStatValue,
+} from "./gear-stats";
 
 // Real gear keys confirmed from gamedata.json:
 //   300001 = SWORD (b1s=AttackDamage FLAT, b2s=AttackSpeed FLAT)
@@ -74,6 +80,26 @@ describe("gearStatRows — edge cases", () => {
     for (const row of rows) {
       expect(row.label).toBeTruthy();
     }
+  });
+});
+
+// ── formatGearStatValue ───────────────────────────────────────────────────────
+
+describe("formatGearStatValue — casa com o tooltip in-game (escala /1000)", () => {
+  it("MULTIPLICATIVE 171 → +17,1% (não +171%)", () => {
+    expect(formatGearStatValue(171, "MULTIPLICATIVE")).toBe("+17,1%");
+  });
+
+  it("ADDITIVE 171 → +17,1%", () => {
+    expect(formatGearStatValue(171, "ADDITIVE")).toBe("+17,1%");
+  });
+
+  it("FLAT 839 → +839 (número absoluto, sem %)", () => {
+    expect(formatGearStatValue(839, "FLAT")).toBe("+839");
+  });
+
+  it("MULTIPLICATIVE 160 → +16,0%", () => {
+    expect(formatGearStatValue(160, "MULTIPLICATIVE")).toBe("+16,0%");
   });
 });
 

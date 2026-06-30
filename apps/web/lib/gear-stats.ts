@@ -109,3 +109,17 @@ export function gearStatRows(db: GameDB, key: number | string): GearStatRow[] {
     isPercent: mt !== "FLAT",
   }));
 }
+
+/**
+ * Formata o valor de uma stat de gear pra exibição, casando com o tooltip in-game.
+ *
+ * FLAT → número absoluto ("+839").
+ * ADDITIVE / MULTIPLICATIVE → percentual na escala /1000 do engine (PERCENT_DIVISOR),
+ * então o percentual real é `value / 10`. Ex.: `MULTIPLICATIVE 171` → "+17,1%"
+ * (×1,171 no cálculo), NÃO "+171%". É o mesmo número que o jogo mostra no item.
+ */
+export function formatGearStatValue(value: number, mt: string): string {
+  if (mt === "FLAT") return `+${value.toLocaleString("pt-BR")}`;
+  const pct = value / 10;
+  return `+${pct.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`;
+}
